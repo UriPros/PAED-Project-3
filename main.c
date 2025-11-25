@@ -1,9 +1,15 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
-int option = 0;
+
+int opt = 0;
+int kopt = ' ';
+int bopt = ' ';
+int wopt = ' ';
+
 
 int StartMenu(int option) {
     printf("\n._/\\ Super Structure Bros /\\_.\n");
@@ -19,17 +25,17 @@ int StartMenu(int option) {
     return option;
 }
 
-char StartMenuKart(char) {
+char StartMenuKart(char kartOption) {
     printf("\n");
     printf("A. Circuit detection");
     printf("B. Vehicle optimization\n");
     printf("C. Go back\n");
     printf("\n");
-    scanf("Wich tool do you want to use? %c", &);
+    scanf("Wich tool do you want to use? %c", &kartOption);
 
-    return ;
+    return kartOption;
 }
-char StartMenuBrawl(char) {
+char StartMenuBrawl(char brawlOption) {
     printf("\n");
     printf("A. Add fighter");
     printf("B. Remove fighther");
@@ -37,12 +43,12 @@ char StartMenuBrawl(char) {
     printf("D. Search fighter");
     printf("E. Counterpick\n");
     printf("F. Go back\n");
-    scanf("Wich tool do you want to use? %c", &);
+    scanf("Wich tool do you want to use? %c", &brawlOption);
 
-    return ;
+    return brawlOption;
 }
 
-char StartMenuWonder(char) {
+char StartMenuWonder(char wonderOption) {
     printf("\n");
     printf("A. Add element");
     printf("B. Delete element");
@@ -50,15 +56,94 @@ char StartMenuWonder(char) {
     printf("D. Search by area");
     printf("E. Statistics\n");
     printf("F. Go back\n");
-    scanf("Wich tool do you want to use? %c", &);
+    scanf("Wich tool do you want to use? %c", &wonderOption);
 
-    return ;
+    return wonderOption;
 }
 
 int main() {
 
     
-    option = StartMenu(option);
+    int option = StartMenu(opt);
+    switch(option) {
+
+        case 1:
+            char kartOption = StartMenuKart(kopt);
+            switch(kartOption) {
+
+                case 'A':
+                    // funció
+                    break;
+
+                case 'B':
+                    // funció
+                    break;
+
+                case 'C':
+                    break;
+            }
+
+        case 2:
+            char brawlOption = StartMenuBrawl(bopt);
+            switch(brawlOption) {
+
+                case 'A':
+                    // funció
+                    break;
+
+                case 'B':
+                    // funció
+                    break;
+
+                case 'C':
+                    // funció
+                    break;
+
+                case 'D':
+                    // funció
+                    break;
+
+                case 'E':
+                    // funció
+                    break;
+
+                case 'F':
+                    break;
+            }
+    
+        case 3:
+            char wonderOption = StartMenuWonder(wopt);
+            switch(wonderOption) {
+
+                case 'A':
+                    // funció
+                    break;
+
+                case 'B':
+                    // funció
+                    break;
+
+                case 'C':
+                    // funció
+                    break;
+
+                case 'D':
+                    // funció
+                    break;
+
+                case 'E':
+                    // funció
+                    break;
+
+                case 'F':
+                    break;
+            }
+               
+        case 4:
+            printf("Exiting the program. Goodbye!\n");
+            break;
+    }
+
 
 
     return 0;
