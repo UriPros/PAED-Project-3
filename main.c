@@ -12,59 +12,61 @@ int wopt = ' ';
 
 
 int StartMenu(int option) {
-    printf("\n._/\\ Super Structure Bros /\\_.\n");
-    printf("\n");
-    printf("1. Kart (Graphs)\n");
-    printf("2. Brawl (Trees)\n");
-    printf("3. Wonder (Tables)\n");
-    printf("\n");
-    printf("4. Stop\n");
-    printf("\n");
-    scanf("Pick a game: %d", &option);
+printf("\n._/\\ Super Structure Bros /\\_.\n");
+printf("\n");
+printf("1. Kart (Graphs)\n");
+printf("2. Brawl (Trees)\n");
+printf("3. Wonder (Tables)\n");
+printf("\n");
+printf("4. Stop\n");
+printf("\n");
+scanf("Pick a game: %d", &option);
 
-    return option;
+return option;
 }
 
 char StartMenuKart(char kartOption) {
-    printf("\n");
-    printf("A. Circuit detection");
-    printf("B. Vehicle optimization\n");
-    printf("C. Go back\n");
-    printf("\n");
-    scanf("Wich tool do you want to use? %c", &kartOption);
+printf("\n");
+printf("A. Circuit detection");
+printf("B. Vehicle optimization\n");
+printf("C. Go back\n");
+printf("\n");
+scanf("Wich tool do you want to use? %c", &kartOption);
 
-    return kartOption;
+return kartOption;
 }
 char StartMenuBrawl(char brawlOption) {
-    printf("\n");
-    printf("A. Add fighter");
-    printf("B. Remove fighther");
-    printf("C. Visual representation");
-    printf("D. Search fighter");
-    printf("E. Counterpick\n");
-    printf("F. Go back\n");
-    scanf("Wich tool do you want to use? %c", &brawlOption);
+printf("\n");
+printf("A. Add fighter");
+printf("B. Remove fighther");
+printf("C. Visual representation");
+printf("D. Search fighter");
+printf("E. Counterpick\n");
+printf("F. Go back\n");
+scanf("Wich tool do you want to use? %c", &brawlOption);
 
-    return brawlOption;
+return brawlOption;
 }
 
 char StartMenuWonder(char wonderOption) {
-    printf("\n");
-    printf("A. Add element");
-    printf("B. Delete element");
-    printf("C. Lookup");
-    printf("D. Search by area");
-    printf("E. Statistics\n");
-    printf("F. Go back\n");
-    scanf("Wich tool do you want to use? %c", &wonderOption);
+printf("\n");
+printf("A. Add element");
+printf("B. Delete element");
+printf("C. Lookup");
+printf("D. Search by area");
+printf("E. Statistics\n");
+printf("F. Go back\n");
+scanf("Wich tool do you want to use? %c", &wonderOption);
 
-    return wonderOption;
+return wonderOption;
 }
 
 int main() {
 
-    
-    int option = StartMenu(opt);
+
+int option = StartMenu(opt);
+
+while (opt != 4) {
     switch(option) {
 
         case 1:
@@ -138,13 +140,17 @@ int main() {
                 case 'F':
                     break;
             }
-               
+            
         case 4:
-            printf("Exiting the program. Goodbye!\n");
+            printf("Turning Super Structure Bros off\n");
+            printf("._/\  ·  \___/\___/  ·  /\_.\n");
             break;
     }
+}
 
 
 
-    return 0;
+
+
+return 0;
 }
