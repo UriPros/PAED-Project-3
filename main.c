@@ -19,7 +19,41 @@ int StartMenu(int option) {
     return option;
 }
 
+char StartMenuKart(char) {
+    printf("\n");
+    printf("A. Circuit detection");
+    printf("B. Vehicle optimization\n");
+    printf("C. Go back\n");
+    printf("\n");
+    scanf("Wich tool do you want to use? %c", &);
 
+    return ;
+}
+char StartMenuBrawl(char) {
+    printf("\n");
+    printf("A. Add fighter");
+    printf("B. Remove fighther");
+    printf("C. Visual representation");
+    printf("D. Search fighter");
+    printf("E. Counterpick\n");
+    printf("F. Go back\n");
+    scanf("Wich tool do you want to use? %c", &);
+
+    return ;
+}
+
+char StartMenuWonder(char) {
+    printf("\n");
+    printf("A. Add element");
+    printf("B. Delete element");
+    printf("C. Lookup");
+    printf("D. Search by area");
+    printf("E. Statistics\n");
+    printf("F. Go back\n");
+    scanf("Wich tool do you want to use? %c", &);
+
+    return ;
+}
 
 int main() {
 
