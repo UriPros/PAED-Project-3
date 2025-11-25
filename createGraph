@@ -1,0 +1,169 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
+#define MAX_STRING 100
+
+// Basic route information
+typedef struct {
+    int origin;
+    int destination;
+    int length;
+    char terrain[MAX_STRING];
+} Route;
+
+// Checkpoint (graph node)
+typedef struct {
+    int id;
+    char name[MAX_STRING];
+    char boost[MAX_STRING];
+    int start;
+    int end;
+
+    Route* routes;   // adjacency list head
+    int numRoutes;
+} Checkpoint;
+
+// Main graph
+typedef struct {
+    int numCheckpoints;
+    int numRoutes;
+    Checkpoint* checkpoints;
+} Graph;
+
+Graph graph;
+
+
+void readfile() {
+    FILE *f;
+
+    f = fopen("myData.txt", "r");
+
+    if (!f) {
+        printf("Error opening file!\n");
+        return;
+    }
+
+    fscanf(f, "%d\n", &graph.numCheckpoints);
+
+    graph.checkpoints = (Checkpoint*)malloc(graph.numCheckpoints * sizeof(Checkpoint));
+
+
+    for (int i = 0; i < graph.numCheckpoints; i++) {
+        int id;
+        char name[MAX_STRING], boost[MAX_STRING];
+        char startStr[10], endStr[10];
+
+        fscanf(f, "%d;%[^;];%[^;];%[^;];%[^;\n]", &id, name, boost, startStr, endStr);
+
+        graph.checkpoints[id - 1].id = id;
+        strcpy(graph.checkpoints[id - 1].name, name);
+         strcpy(graph.checkpoints[id - 1].boost, boost);
+        graph.checkpoints[id - 1].start = strcmp(startStr, "True") == 0;
+        graph.checkpoints[id - 1].end   = strcmp(endStr, "True") == 0;
+
+        graph.checkpoints[id - 1].routes = malloc(graph.numCheckpoints * sizeof(Route));
+        graph.checkpoints[id - 1].numRoutes = 0;
+    }        
+        
+    fscanf(f, "%d\n", &graph.numRoutes);
+    
+    for (int i = 0; i < graph.numRoutes; i++) {
+        int originID, destID, length;
+        char terrain[MAX_STRING];
+
+        fscanf(f, "%d;%d;%d;%s\n",
+            &originID,
+            &destID,
+            &length,
+            terrain
+        );
+
+        int index = originID - 1;
+
+        int r = graph.checkpoints[index].numRoutes;
+        graph.checkpoints[index].routes[r].origin = originID;
+        graph.checkpoints[index].routes[r].destination = destID;
+        graph.checkpoints[index].routes[r].length = length;
+        strcpy(graph.checkpoints[index].routes[r].terrain, terrain);
+
+        graph.checkpoints[index].numRoutes++;
+
+
+
+        /*
+        for (int j = 0; j < graph.numCheckpoints; j++) {
+
+            if (originID == j + 1) {
+                graph.checkpoints[j].routes[i].origin = originID;
+                graph.checkpoints[j].routes[i].destination = destID;
+                graph.checkpoints[j].routes[i].length = length;
+                strcpy(graph.checkpoints[j].routes[i].terrain, terrain);
+            }
+        }
+        */
+
+    }
+    fclose(f);
+
+}
+
+void printStructs(Checkpoint* checkpoints, Route* routes, int numCheckpoints) {
+    printf("\n---- Checkpoints ----\n");
+    printf("Number of Checkpoints: %d\n", numCheckpoints);
+    for (int i = 0; i < numCheckpoints; i++) {
+        printf("Checkpoint ID: %d\n", checkpoints[i].id);
+        printf("Name: %s\n", checkpoints[i].name);
+        printf("Boost: %s\n", checkpoints[i].boost);
+        printf("Start: %d\n", checkpoints[i].start);
+        printf("End: %d\n", checkpoints[i].end);
+        printf("\n");
+    }
+    printf("\n\n");
+
+    printf("---- Routes ----\n");
+    for (int i = 0; i < numCheckpoints; i++) {
+        Checkpoint cp = checkpoints[i];
+        printf("Routes from Checkpoint ID %d:\n", cp.id);
+        for (int j = 0; j < cp.numRoutes; j++) {
+            Route route = cp.routes[j];
+            printf("  To Checkpoint ID: %d\n", route.destination);
+            printf("  Length: %d\n", route.length);
+            printf("  Terrain: %s\n", route.terrain);
+            printf("\n");
+        }
+        printf("\n");
+    }
+
+    printf("\n\n");
+
+    printf("Print graph:\n");
+    for (int i = 0; i < numCheckpoints; i++) {
+        Checkpoint cp = checkpoints[i];
+        printf("Checkpoint ID %d (%s),:\n", cp.id, cp.name);
+        for (int j = 0; j < cp.numRoutes; j++) {
+            Route route = cp.routes[j];
+            printf("  -> Checkpoint ID %d | Length: %d | Terrain: %s\n",
+                   route.destination, route.length, route.terrain);
+        }
+        printf("\n");
+    }
+    printf("\n\n");
+    
+}
+
+void freeMemory(Checkpoint* checkpoints) {
+    free(checkpoints);
+}
+
+
+
+int main() {
+
+    readfile();
+
+    printStructs(graph.checkpoints, graph.checkpoints->routes, graph.numCheckpoints);
+
+    return 0;
+}
