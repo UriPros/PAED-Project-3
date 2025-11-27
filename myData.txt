@@ -1,0 +1,53 @@
+16
+7;Through Western Anaside;SPEED;False;True
+8;Important Per Sextonfurt;SPEED;False;False
+11;City Front Sextonfurt;NONE;False;False
+12;Leg Compare Anaside;NONE;False;False
+4;Eye Brother Sextonfurt;ITEM;False;False
+10;College Finally Anaside;NONE;False;False
+3;Court Power Anaside;ITEM;False;False
+2;Director Property Anaside;SPEED;False;False
+1;Today Before Sextonfurt;JUMP;True;False
+13;Happy Employee Anaside;SPEED;False;False
+5;Voice Coach Sextonfurt;ITEM;False;False
+14;Eat Determine Anaside;SPEED;True;False
+16;Office Service Sextonfurt;NONE;False;True
+6;Against Foot Sextonfurt;JUMP;False;False
+9;Western Fund Anaside;ITEM;False;False
+15;Market Tend Anaside;ITEM;False;False
+35
+3;7;19;AERIAL
+6;16;75;LAVA
+13;2;50;NONE
+5;11;30;TERRESTRIAL
+12;3;86;NONE
+11;6;55;NONE
+15;2;94;CUT
+10;12;60;LAVA
+1;8;56;TERRESTRIAL
+3;13;86;CUT
+14;10;47;CUT
+6;5;64;AQUATIC
+10;9;40;AERIAL
+5;4;75;LAVA
+9;13;91;AERIAL
+9;2;24;CUT
+6;4;85;LAVA
+10;13;88;CUT
+4;11;26;AERIAL
+15;3;30;CUT
+12;2;77;AERIAL
+4;16;99;TERRESTRIAL
+8;6;50;TERRESTRIAL
+13;7;24;CUT
+8;4;98;CUT
+12;15;73;AQUATIC
+3;9;36;LAVA
+14;12;33;CUT
+5;8;35;LAVA
+10;3;64;AERIAL
+13;15;44;CUT
+12;13;17;NONE
+10;15;29;AERIAL
+1;5;43;AERIAL
+2;7;12;NONE
