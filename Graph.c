@@ -31,6 +31,8 @@ typedef struct {
     int totalRoutes;
     Checkpoint* checkpoints;
     int num_circuits;
+    int* start_indices;
+    int* end_indices;
 } Graph;
 
 Graph graph; 
@@ -72,7 +74,10 @@ void readfile() {
         graph.checkpoints[id - 1].routes = malloc(graph.totalCheckpoints * sizeof(Route));
         graph.checkpoints[id - 1].numRoutes = 0;
     }        
-        
+    
+    graph.start_indices = (int*)malloc(graph.num_circuits * sizeof(int));
+    graph.end_indices = (int*)malloc(graph.num_circuits * sizeof(int));
+
     fscanf(f, "%d\n", &graph.totalRoutes);
     
     for (int i = 0; i < graph.totalRoutes; i++) {
@@ -86,7 +91,6 @@ void readfile() {
             terrain
         );
 
-
         int index = originID - 1;
         int r = graph.checkpoints[index].numRoutes;
 
@@ -96,9 +100,9 @@ void readfile() {
         strcpy(graph.checkpoints[index].routes[r].terrain, terrain);
 
         graph.checkpoints[index].numRoutes++;
-        
 
     }
+
     fclose(f);
 
 }
@@ -143,7 +147,7 @@ void printStructs(Checkpoint* checkpoints, Route* routes, int totalCheckpoints) 
         }
         printf("\n");
     }
-    printf("\nNum circutis: %d\n\n", graph.num_circuits);
+    printf("\nNum circutis: %d\n\n\n", graph.num_circuits);
     
 }
 
@@ -214,6 +218,9 @@ void detectCircuits() {
             start = graph.checkpoints[i];
             end = graph.checkpoints[index_end];
 
+            graph.start_indices[circuits_found - 1] = start.id - 1;
+            graph.end_indices[circuits_found - 1] = end.id - 1;
+            
             printCircuit(start, end, checkpoints_in_circuit, circuits_found);
         }
     }
@@ -221,6 +228,26 @@ void detectCircuits() {
 
 
 void vehicleOptimization(){
+
+    int option = 0;
+    char vehicle_type[20];
+
+    printf("\n");
+    for (int i = 0; i < graph.num_circuits; i++) {
+        printf("%d) %s (%d)\n", i+1, graph.checkpoints[graph.start_indices[i]].name, graph.checkpoints[graph.start_indices[i]].id);
+    }
+    printf("\nPick a starting point: ");
+    //fscanf("%d", &option);
+
+    printf("\nEnter a type of vehicle (TERRESTRIAL, AQUATIC, AERIAL or LAVA) or ANY: ");
+    //fscanf("%s", vehicle_type);
+
+
+    for (int i = 0; i < graph.num_circuits; i++) {
+
+        //Dijkstra(graph, graph.start_indices[i], graph.end_indices[i], visited);
+        
+    }
 
 }
 
