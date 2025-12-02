@@ -1,0 +1,62 @@
+// Cal incloure els canvis que ens va donar el Carles per brand and bound
+/*The item polled using the queue for the b&b is based on its real cost, 
+but should be done based on its heuristic! (Cost is always +1 so you aren't really doing much with this queue, 
+if you selected items using an estimated cost [estimation from point to end] you would get different 
+values depending on the configuration and thus would be able to "choose the best one"). Great work regardless!*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "myPQ.h"
+
+typedef struct {
+    Node* items;   // Array of nodes
+    int size;      // Current number of nodes in the queue
+} PrioQ;
+
+// --- Insert a node into the priority queue ---
+void PQ_insert(PrioQ* PQ, Node n) {
+    // Allocate space for the new node
+    PQ->items = (Node*) realloc(PQ->items, (PQ->size + 1) * sizeof(Node));
+    if (PQ->items == NULL) {
+        printf("Memory allocation error!\n");
+        exit(1);
+    }
+
+    // Add node at the end
+    PQ->items[PQ->size] = n;
+    PQ->size++;
+}
+
+// --- Poll the node with the smallest cost from the queue ---
+Node PQ_poll(PrioQ* PQ) {
+    int best = 0;
+
+    // Find the node with minimum cost
+    for (int i = 1; i < PQ->size; i++) {
+        if (PQ->items[i].cost < PQ->items[best].cost) {
+            best = i;
+        }
+    }
+
+    // Store the best node to return
+    Node n = PQ->items[best];
+
+    // Move the last node to fill the gap
+    PQ->items[best] = PQ->items[PQ->size - 1];
+    PQ->size--;
+
+    return n;
+}
+
+// --- Peek at the node with the smallest cost without removing it ---
+Node PQ_peek(PrioQ* PQ) {
+    int best = 0;
+
+    for (int i = 1; i < PQ->size; i++) {
+        if (PQ->items[i].cost < PQ->items[best].cost) {
+            best = i;
+        }
+    }
+
+    return PQ->items[best];
+}
