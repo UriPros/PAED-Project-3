@@ -173,6 +173,10 @@ void DFS(Graph graph, Checkpoint current, int *index_end, int visited[], int *co
     visited[current.id - 1] = 1;
     (*count)++;
 
+    if (current.end == 1) {
+        *index_end = currect.id - 1;
+    }
+
     // Recur for all the vertices adjacent to this checkpoint
     for (int i = 0; i < current.numRoutes; i++) {
 
@@ -180,9 +184,6 @@ void DFS(Graph graph, Checkpoint current, int *index_end, int visited[], int *co
 
         if (!visited[dest - 1]) {
             DFS(graph, graph.checkpoints[dest - 1], index_end, visited, count);
-        }
-        else if (visited[dest - 1] && graph.checkpoints[dest - 1].end) {
-            (*index_end) = dest - 1;
         }
     }
 }
