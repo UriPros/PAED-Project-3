@@ -241,6 +241,7 @@ void vehicleOptimization(){
 
     printf("\nEnter a type of vehicle (TERRESTRIAL, AQUATIC, AERIAL or LAVA) or ANY: ");
     //fscanf("%s", vehicle_type);
+    //vehicle_type[strlen(vehicle_type)] = '\0';
 
 
     for (int i = 0; i < graph.num_circuits; i++) {
