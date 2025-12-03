@@ -1,0 +1,9 @@
+8
+3;Jill Rhodes;85;#65CE0C;FIREBALL;765
+8;James Santos;119;#B7CC25;DOUBLECOINS;452
+2;Joshua Walker;53;#771F54;GLIDE;716
+6;Anthony Robinson;67;#D860EA;MAGNET;384
+4;YellowGreen;81;#70DD97;INVINCIBLE;703
+1;Danielle Johnson;64;#D80623;BOOST;130
+7;William Johnson;63;#AC561E;JUMP;194
+5;Christopher Henderson;78;#0353CE;ICE;925
