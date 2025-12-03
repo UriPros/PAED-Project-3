@@ -8,7 +8,7 @@
 typedef struct {
     int id;
     char name[MAX_STRING];
-    int atk_power;
+    int power_lvl;
     char colour[MAX_STRING];
     char ability[MAX_STRING];
     int price;
@@ -47,10 +47,10 @@ void insertNode(treenode** root_pointer, Fighter fighter){
         (*root_pointer) = createnode(fighter);
         return;
     }
-    if (fighter.id == node->fighter.id) {
+    if (fighter.power_lvl == node->fighter.power_lvl) {
         //Nothing // Duplicate ID
     }
-    if (fighter.id < node->fighter.id) {
+    if (fighter.power_lvl < node->fighter.power_lvl) {
         return insertNode(&(node->left), fighter);
     }
     else {
@@ -77,7 +77,7 @@ int readfile(){
         fscanf(f, "%d;%[^;];%d;%[^;];%[^;];%d\n",
             &fighter.id,
             fighter.name,
-            &fighter.atk_power,
+            &fighter.power_lvl,
             fighter.colour,
             fighter.ability,
             &fighter.price
@@ -91,6 +91,8 @@ int readfile(){
 
     return numFighters;
 }
+
+
 
 void addFighter(int numFighters){
 
@@ -107,7 +109,7 @@ void addFighter(int numFighters){
     scanf(" %99[^\n]", newFighter.name);
 
     printf("Fighter attack power: ");
-    scanf("%d", &newFighter.atk_power);
+    scanf("%d", &newFighter.power_lvl);
 
     printf("Fighter colour: ");
     scanf("%s", newFighter.colour);
@@ -124,22 +126,6 @@ void addFighter(int numFighters){
 }
 
 
-int findNode(treenode* root, int id, Fighter *foundFighter) {
-
-    if (root == NULL) {
-        return 0; // Not found
-    }
-    if (id == root->fighter.id) {
-        *foundFighter = root->fighter;
-        return 1; // Found
-    }
-    if (id < root->fighter.id) {
-        return findNode(root->left, id, foundFighter);
-    }
-    else {
-        return findNode(root->right, id,foundFighter);
-    }
-}
 
 treenode *findMin (treenode *node) {
     treenode *current = node;
@@ -183,7 +169,6 @@ void deleteNode(treenode** root_pointer, int id) {
     }
 }
 
-
 void removeFighter(){
 
     Fighter fighter_to_remove;
@@ -193,17 +178,11 @@ void removeFighter(){
     printf("\nFighter identifier: ");
     scanf("%d", &id_to_remove);
 
-    found = findNode(root, id_to_remove, &fighter_to_remove);
-
     // In a complete implementation, you would search the tree and remove the node.
-    if (found) {
-        deleteNode(&root, id_to_remove);
-        printf("Fighter %s has been removed from the roster.\n", fighter_to_remove.name);
-    } else {
-        printf("Fighter with ID %d not found in the roster.\n", id_to_remove);
-        return;
-    }
+    deleteNode(&root, id_to_remove);
+    printf("Fighter %s has been removed from the roster.\n", fighter_to_remove.name);
 }
+
 
 
 void printtabs(int level) {
@@ -241,6 +220,104 @@ void visualRepresentation(treenode* root){
 }
 
 
+
+int findNode(treenode* root, int power_lvl, Fighter *foundFighter) {
+
+    if (root == NULL) {
+        return 0; // Not found
+    }
+    if (power_lvl == root->fighter.power_lvl) {
+        *foundFighter = root->fighter;
+        return 1; // Found
+    }
+    if (power_lvl < root->fighter.power_lvl) {
+        return findNode(root->left, power_lvl, foundFighter);
+    }
+    else {
+        return findNode(root->right, power_lvl,foundFighter);
+    }
+}
+
+void searchFighter(treenode* root){
+
+    int power_lvl;
+    Fighter foundFighter;
+    int found = 0;
+
+    printf("Power level to search for: ");
+    scanf("%d", &power_lvl);
+
+    //et fa search per ID -> s'ha de canviar a power level
+    found = findNode(root, power_lvl, &foundFighter);
+
+    if (found) {
+        printf("\nFighter found:\n");
+        printf("ID: %d\n", foundFighter.id);
+        printf("Name: %s\n", foundFighter.name);
+        printf("Attack Power: %d\n", foundFighter.power_lvl);
+        printf("Colour: %s\n", foundFighter.colour);
+        printf("Ability: %s\n", foundFighter.ability);
+        printf("Price: %d\n", foundFighter.price);
+    } else {
+        printf("Fighter with power level: %d not found in the roster.\n", power_lvl);
+    }
+}
+
+
+
+int countCounters(treenode* node, int min_atk, int max_atk){
+
+    int count = 0;
+
+    if (node == NULL) {
+        return 0;
+    }
+
+    if (node->fighter.power_lvl >= min_atk && node->fighter.power_lvl <= max_atk) {
+        count++;
+    }
+    
+    count = count + countCounters(node->left, min_atk, max_atk);
+    count = count + countCounters(node->right, min_atk, max_atk);
+
+    return count;
+}
+
+//Inorder traversal to find and print counters (first left, then root, then right)
+void findCounters(treenode* node, int min_atk, int max_atk){
+
+    if (node == NULL) {
+        return;
+    }
+
+    if (node->fighter.power_lvl <= max_atk) {
+        findCounters(node->right, min_atk, max_atk);
+    }
+    if (node->fighter.power_lvl >= min_atk && node->fighter.power_lvl <= max_atk) {
+        printf("\t*%s (%d): %d\n",node->fighter.name, node->fighter.id, node->fighter.power_lvl);
+    }
+    if (node->fighter.power_lvl >= min_atk) {
+        findCounters(node->left, min_atk, max_atk);
+    }
+}
+
+void counterPick(){
+       
+    int min_atk, max_atk;
+    int num_counters = 0;
+
+    printf("\nMinimum attak power level: ");
+    scanf("%d", &min_atk);
+    printf("Maximum attak power level: ");
+    scanf("%d", &max_atk);
+
+    num_counters = countCounters(root, min_atk, max_atk);
+    printf("\n %d fighters found with attack power level between %d and %d.\n\n", num_counters, min_atk, max_atk);
+
+    findCounters(root, min_atk, max_atk);
+}
+
+
 int main(){
 
     int numFighters = readfile();
@@ -250,6 +327,10 @@ int main(){
     removeFighter();
 
     visualRepresentation(root);
+
+    searchFighter(root);
+
+    counterPick();
 
     return 0;
 }
