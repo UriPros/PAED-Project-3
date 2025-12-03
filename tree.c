@@ -213,7 +213,7 @@ void printtree(treenode* node, int level) {
     printf("done\n");
     
 }
-
+//falta implementar els colors i com volem que sigui el tree visualment
 void visualRepresentation(treenode* root){
     printf("\nVisual representation of the fighter roster tree:\n\n");
     printtree(root, 0);
