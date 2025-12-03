@@ -44,7 +44,7 @@ Graph graph;
 void readfile() {
     FILE *f;
 
-    f = fopen("myData.txt", "r");
+    f = fopen("graphData.txt", "r");
 
     if (!f) {
         printf("Error opening file!\n");
