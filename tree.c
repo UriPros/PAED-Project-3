@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 
 #define MAX_STRING 100
 
@@ -31,48 +30,44 @@ treenode* root = NULL;
 
 
 treenode *createnode(Fighter fighter){
-
     treenode* newnode = (treenode*)malloc(sizeof(treenode));
-
     if (newnode != NULL) {
         newnode->fighter = fighter;
         newnode->left = NULL;
         newnode->right = NULL;
     }
-
     return newnode;
 }
 
-bool insertNode(treenode** root_pointer, Fighter fighter){
+void insertNode(treenode** root_pointer, Fighter fighter){
 
-    treenode *root = *root_pointer;
+    treenode *node = *root_pointer;
 
-    if (root == NULL) {
-        root = createnode(fighter);
-        return true;
+    if (node == NULL) {
+        (*root_pointer) = createnode(fighter);
+        return;
     }
-    if (fighter.id == root->fighter.id) {
-        return false; // Duplicate ID
+    if (fighter.id == node->fighter.id) {
+        //Nothing // Duplicate ID
     }
-    if (fighter.id < root->fighter.id) {
-        return insertNode(&(root->left), fighter);
+    if (fighter.id < node->fighter.id) {
+        return insertNode(&(node->left), fighter);
     }
     else {
-        return insertNode(&(root->right), fighter);
+        return insertNode(&(node->right), fighter);
     }
 }
 
-void readfile(){
+int readfile(){
     FILE *f;
     Fighter fighter;
     int numFighters;
-    int first_time = 0;
 
     f = fopen("treeData.txt", "r");
 
     if (!f) {
         printf("Error opening file!\n");
-        return;
+        return 0;
     }
 
     fscanf(f, "%d\n", &numFighters);
@@ -88,32 +83,28 @@ void readfile(){
             &fighter.price
         );
 
-        // In a complete implementation, you would insert the new node into the tree here.
-        if (!first_time) {
-            // Initialize tree root
-            root = createnode(fighter);
-            first_time = 1;
-        }
-        else {
-            insertNode(&root, fighter);
-        }
+        insertNode(&root, fighter);
 
     }
 
-
     fclose(f);
+
+    return numFighters;
 }
 
-void addFighter(){
+void addFighter(int numFighters){
 
     Fighter newFighter;
-    treenode* newFighterNode;
 
     printf("\nFighter Identifier: ");
     scanf("%d", &newFighter.id);
+    while (newFighter.id <= numFighters) {
+        printf("Invalid ID. Please enter a positive integer: ");
+        scanf("%d", &newFighter.id);
+    }
 
     printf("Fighter Name: ");
-    scanf("%s", newFighter.name);
+    scanf(" %99[^\n]", newFighter.name);
 
     printf("Fighter attack power: ");
     scanf("%d", &newFighter.atk_power);
@@ -127,26 +118,20 @@ void addFighter(){
     printf("Fighter price: ");
     scanf("%d", &newFighter.price);
 
-
-    newFighterNode = createnode(newFighter);
     insertNode(&root, newFighter);
 
-    if (newFighterNode != NULL) {
-        printf("\nThe roster has been expanded with the fighter %s.\n", newFighter.name);
-    } else {
-        printf("Failed to create fighter node.\n");
-    }
+    printf("\nThe roster has been expanded with the fighter %s.\n", newFighter.name);
 }
 
 
-bool findNode(treenode* root, int id, Fighter *foundFighter) {
+int findNode(treenode* root, int id, Fighter *foundFighter) {
 
     if (root == NULL) {
-        return false; // Not found
+        return 0; // Not found
     }
     if (id == root->fighter.id) {
         *foundFighter = root->fighter;
-        return true; // Found
+        return 1; // Found
     }
     if (id < root->fighter.id) {
         return findNode(root->left, id, foundFighter);
@@ -156,34 +141,115 @@ bool findNode(treenode* root, int id, Fighter *foundFighter) {
     }
 }
 
+treenode *findMin (treenode *node) {
+    treenode *current = node;
+
+    while (current && current->left != NULL) {
+        current = current->left;
+    }
+    return current;
+}
+
+void deleteNode(treenode** root_pointer, int id) {
+
+    treenode *node = *root_pointer;
+    treenode *inOrderSuccessor;
+
+    if (node == NULL) {
+        return;
+    }
+
+    if (id < node->fighter.id) {
+        return deleteNode(&(node->left), id);
+    }
+    else if (id > node->fighter.id){
+        return deleteNode(&(node->right), id);
+    }
+    else {
+        // Node found, perform deletion (not implemented)
+        if (node->left == NULL) {
+            *root_pointer = node->right;
+            free(node);
+        }
+        else if (node->right == NULL) {
+            *root_pointer = node->left;
+            free(node);
+        }
+        else {
+            inOrderSuccessor = findMin(node->right);
+            node->fighter = inOrderSuccessor->fighter;
+            deleteNode(&(node->right), inOrderSuccessor->fighter.id);
+        }
+    }
+}
+
+
 void removeFighter(){
 
     Fighter fighter_to_remove;
     int id_to_remove;
+    int found = 0;
 
     printf("\nFighter identifier: ");
     scanf("%d", &id_to_remove);
 
+    found = findNode(root, id_to_remove, &fighter_to_remove);
+
     // In a complete implementation, you would search the tree and remove the node.
-    if (findNode(root, id_to_remove, &fighter_to_remove)) {
-        // Node found, proceed to remove (removal logic not implemented here)
+    if (found) {
+        deleteNode(&root, id_to_remove);
         printf("Fighter %s has been removed from the roster.\n", fighter_to_remove.name);
     } else {
-        printf("Fighter %s not found in the roster.\n", fighter_to_remove.name);
+        printf("Fighter with ID %d not found in the roster.\n", id_to_remove);
+        return;
+    }
+}
+
+
+void printtabs(int level) {
+    for (int i = 0; i < level; i++) {
+        printf("\t");
+    }
+}
+
+void printtree(treenode* node, int level) {
+    if (node == NULL) {
+        printtabs(level);
+        printf("NULL\n");
         return;
     }
 
+    printtabs(level);
+    printf("id = %d\n", node->fighter.id);
+    
+    printtabs(level);
+    printf("right\n");
+    printtree(node->right, level + 1);
+
+    printtabs(level);
+    printf("left\n");
+    printtree(node->left, level + 1);
+
+    printtabs(level);
+    printf("done\n");
+    
 }
 
+void visualRepresentation(treenode* root){
+    printf("\nVisual representation of the fighter roster tree:\n\n");
+    printtree(root, 0);
+}
 
 
 int main(){
 
-    readfile();
+    int numFighters = readfile();
 
-    addFighter();
+    addFighter(numFighters);
 
     removeFighter();
+
+    visualRepresentation(root);
 
     return 0;
 }
