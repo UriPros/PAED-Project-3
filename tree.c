@@ -19,6 +19,8 @@ typedef struct treenode {
     Fighter fighter;
     struct treenode *right;
     struct treenode *left;
+    int height;
+    int balance_factor;
 }treenode;
 
 
@@ -26,7 +28,63 @@ typedef struct treenode {
 
 treenode* root = NULL;
 
+int getHeight(treenode* node) {
 
+    int leftHeight, rightHeight;
+
+    if (node == NULL) {
+        return 0;
+    }
+
+    leftHeight = getHeight(node->left);
+    rightHeight = getHeight(node->right);
+
+    if (leftHeight > rightHeight) {
+        return leftHeight + 1;
+    }
+    else {
+        return rightHeight + 1;
+    }
+}
+
+int getBalanceFactor(treenode* node) {
+    if (node == NULL) {
+        return 0;
+    }
+    return getHeight(node->left) - getHeight(node->right);
+}
+
+treenode *rightRotate(treenode *y) {
+    treenode *x = y->left;
+    treenode *T2 = x->right;
+
+    // Perform rotation
+    x->right = y;
+    y->left = T2;
+
+    // Update heights
+    y->height = getHeight(y);
+    x->height = getHeight(x);
+
+    // Return new root
+    return x;
+}
+
+treenode *leftRotate(treenode *x) {
+    treenode *y = x->right;
+    treenode *T2 = y->left;
+
+    // Perform rotation
+    y->left = x;
+    x->right = T2;
+
+    // Update heights
+    x->height = getHeight(x);
+    y->height = getHeight(y);
+
+    // Return new root
+    return y;
+}
 
 
 treenode *createnode(Fighter fighter){
@@ -184,7 +242,7 @@ void removeFighter(){
 }
 
 
-
+//falta implementar els colors i com volem que sigui el tree visualment
 void printtabs(int level) {
     for (int i = 0; i < level; i++) {
         printf("\t");
@@ -213,7 +271,7 @@ void printtree(treenode* node, int level) {
     printf("done\n");
     
 }
-//falta implementar els colors i com volem que sigui el tree visualment
+
 void visualRepresentation(treenode* root){
     printf("\nVisual representation of the fighter roster tree:\n\n");
     printtree(root, 0);
