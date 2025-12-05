@@ -22,7 +22,6 @@ int hash(char* name) {
 void add_element(ElementNode* table[]) {
     Element e;
 
-    // Code to add an element
     printf("\n\nElement name?");
     fgets(e.name, MAX, stdin);
     e.name[strlen(e.name) - 1] = '\0';
@@ -88,4 +87,5 @@ int main() {
             table[index] = table_add(table[index], e[i]);
         }
     }
+
 }
