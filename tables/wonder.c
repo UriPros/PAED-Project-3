@@ -27,20 +27,19 @@ void wonder_menu(ElementNode* table[]) {
                 remove_element(table);
                 break;
             case 'C':
-                // funció C
+                lookup_element(table);
                 break;
             case 'D':
-                // funció D
+                search_by_area(table);
                 break;
             case 'E':
-                // funció E
+                // Code for tool E
                 break;
             case 'F':
-                // chao pescao
+                // go back to main menu
                 break;
 
         }
 
     }
-
 }
