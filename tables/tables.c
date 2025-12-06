@@ -5,7 +5,6 @@
 #include "tables.h"
 #include "linkedlist.h"
 
-
 //he fet aquesta pero si el carles ens penja una altra de model, la cambiem
 
 int hash(char* name) {
@@ -51,12 +50,48 @@ void remove_element(ElementNode* table[]) {
     name[strlen(name) - 1] = '\0';
 
     int index = hash(name);
+    Element* e = list_get(table[index], name);
     table[index] = list_remove(table[index], name);
 
-    printf("\nThe element %s (e.world - e.latitude, e.longitude) has been removed!.\n\n", name);  //mal fet no estic agfant correctament les dades
-    //potser puc fer un bucle comparant el nom dins de la llista abans de borrar i agafar les dades
+    printf("\nThe element %s (%s - %.2f, %.2f) has been removed!\n\n", e->name, e->world, e->latitude, e->longitude);
 
+}
 
+void lookup_element(ElementNode* table[]) {
+    char name[MAX];
+    printf("\n\nEnter the name of the element to lookup: ");
+    fgets(name, MAX, stdin);
+    name[strlen(name) - 1] = '\0';
+
+    int index = hash(name);
+    Element* e = list_get(table[index], name);
+
+    printf("\nThe following element has been found: %s (%s - %.2f, %.2f)\n\n", e->name, e->world, e->latitude, e->longitude);
+}
+
+void search_by_area(ElementNode* table[]) {
+    char world[MAX];
+    float lat1, lon1, lat2, lon2;
+
+    printf("Enter a world name: ");
+    printf("Enter the latitude for the first point: ");
+    printf("Enter the longitude for the first point: ");
+    printf("Enter the latitude for the second point: ");
+    printf("Enter the longitude for the second point: ");
+
+    printf("Elements found in the specified area:\n");
+    for (int i = 0; i < MAX; i++) {
+        ElementNode* current = table[i];
+        while (current != NULL) {
+            Element e = current->data;
+            if (strcmp(e.world, world) == 0 &&
+                e.latitude >= lat1 && e.latitude <= lat2 &&
+                e.longitude >= lon1 && e.longitude <= lon2) {
+                printf("%s (%s - %.2f, %.2f)\n", e.name, e.world, e.latitude, e.longitude);
+            }
+            current = current->next;
+        }
+    }
 }
 
 int main() {
@@ -87,5 +122,4 @@ int main() {
             table[index] = table_add(table[index], e[i]);
         }
     }
-
 }
