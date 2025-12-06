@@ -10,10 +10,10 @@ ElementNode* list_add(ElementNode* head, Element e) {
     return newNode;
 }
 
-ElementNode* list_get(ElementNode* head, char* name) {
+Element* list_get(ElementNode* head, char* name) {
     while (head != NULL) {
         if (strcmp(head->data.name, name) == 0) {
-            return head;
+            return &head->data;
         }
         head = head->next;
     }
