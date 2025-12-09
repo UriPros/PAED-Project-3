@@ -24,9 +24,8 @@ typedef struct treenode {
 }treenode;
 
 
-
-
 treenode* root = NULL;
+
 
 int getHeight(treenode* node) {
 
@@ -54,37 +53,41 @@ int getBalanceFactor(treenode* node) {
     return getHeight(node->left) - getHeight(node->right);
 }
 
-treenode *rightRotate(treenode *y) {
-    treenode *x = y->left;
-    treenode *T2 = x->right;
+treenode *rightRotate(treenode *node) {
+    treenode *prev = node->left;
+    treenode *middle = prev->right;
 
     // Perform rotation
-    x->right = y;
-    y->left = T2;
+    prev->right = node;
+    node->left = middle;
 
     // Update heights
-    y->height = getHeight(y);
-    x->height = getHeight(x);
+    node->height = max(getHeight(node->left), getHeight(node->right)) + 1;  //now this node is below the prev
+    prev->height = max(getHeight(prev->left), getHeight(prev->right)) + 1;  //now this node is the new root
 
-    // Return new root
-    return x;
+    // Return old root to check against balancing
+    return node; 
 }
 
-treenode *leftRotate(treenode *x) {
-    treenode *y = x->right;
-    treenode *T2 = y->left;
+treenode *leftRotate(treenode *node) {
+    treenode *prev = node->right;
+    treenode *middle = prev->left;
 
     // Perform rotation
-    y->left = x;
-    x->right = T2;
+    prev->left = node;
+    node->right = middle;
 
     // Update heights
-    x->height = getHeight(x);
-    y->height = getHeight(y);
+    node->height = max(getHeight(node->left), getHeight(node->right)) + 1;  //now this node is below the prev
+    prev->height = max(getHeight(prev->left), getHeight(prev->right)) + 1;  //now this node is the new root
 
-    // Return new root
-    return y;
+    // Return old root to check against balancing
+    return node; 
 }
+
+
+
+
 
 
 treenode *createnode(Fighter fighter){
@@ -243,6 +246,7 @@ void removeFighter(){
 
 
 //falta implementar els colors i com volem que sigui el tree visualment
+//ara esta ordenat per id, pero hauria de ser per power level
 void printtabs(int level) {
     for (int i = 0; i < level; i++) {
         printf("\t");
@@ -257,7 +261,7 @@ void printtree(treenode* node, int level) {
     }
 
     printtabs(level);
-    printf("id = %d\n", node->fighter.id);
+    printf("id = %d\n", node->fighter.power_lvl);
     
     printtabs(level);
     printf("right\n");
@@ -322,8 +326,8 @@ void searchFighter(treenode* root){
 }
 
 
-
-int countCounters(treenode* node, int min_atk, int max_atk){
+//Inorder traversal to find and print counters (first left, then root, then right)
+int findCounters(treenode* node, int min_atk, int max_atk) {
 
     int count = 0;
 
@@ -331,32 +335,18 @@ int countCounters(treenode* node, int min_atk, int max_atk){
         return 0;
     }
 
-    if (node->fighter.power_lvl >= min_atk && node->fighter.power_lvl <= max_atk) {
-        count++;
-    }
-    
-    count = count + countCounters(node->left, min_atk, max_atk);
-    count = count + countCounters(node->right, min_atk, max_atk);
-
-    return count;
-}
-
-//Inorder traversal to find and print counters (first left, then root, then right)
-void findCounters(treenode* node, int min_atk, int max_atk){
-
-    if (node == NULL) {
-        return;
-    }
-
     if (node->fighter.power_lvl <= max_atk) {
-        findCounters(node->right, min_atk, max_atk);
+        count += findCounters(node->right, min_atk, max_atk);
     }
     if (node->fighter.power_lvl >= min_atk && node->fighter.power_lvl <= max_atk) {
         printf("\t*%s (%d): %d\n",node->fighter.name, node->fighter.id, node->fighter.power_lvl);
+        count++;
     }
     if (node->fighter.power_lvl >= min_atk) {
-        findCounters(node->left, min_atk, max_atk);
+        count += findCounters(node->left, min_atk, max_atk);
     }
+
+    return count;
 }
 
 void counterPick(){
@@ -369,10 +359,14 @@ void counterPick(){
     printf("Maximum attak power level: ");
     scanf("%d", &max_atk);
 
-    num_counters = countCounters(root, min_atk, max_atk);
-    printf("\n %d fighters found with attack power level between %d and %d.\n\n", num_counters, min_atk, max_atk);
 
-    findCounters(root, min_atk, max_atk);
+    printf("\nWe are looking for fighters with attack power level between %d and %d.\n\n", min_atk, max_atk);
+    printf("These are the fighters that can counter your opponent:\n\n");
+    
+    num_counters = findCounters(root, min_atk, max_atk);
+
+    printf("\nTotal number of counters found: %d\n\n", num_counters);
+    
 }
 
 
