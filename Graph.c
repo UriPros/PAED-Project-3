@@ -53,6 +53,9 @@ void readfile() {
 
     fscanf(f, "%d\n", &graph.totalCheckpoints);
 
+    graph.num_circuits = 0;
+
+
     graph.checkpoints = (Checkpoint*)malloc(graph.totalCheckpoints * sizeof(Checkpoint));
 
 
@@ -299,9 +302,12 @@ float checkpoint_boost(float base_cost, int length, char* boost, char* terrain) 
         return length * 1.0;   // ignore all penalties
 
     if (strcmp(boost, "ITEM") == 0) {
-        if (strcmp(terrain, "CUT") == 0)
+        if (strcmp(terrain, "CUT") == 0) {
             return base_cost;    // CUT cannot be ignored
-        return length * 1.0;     // ignore all other penalties
+        }
+        else {
+            return length * 1.0;     // ignore all other penalties
+        }
     }
 
     return base_cost;
@@ -309,27 +315,65 @@ float checkpoint_boost(float base_cost, int length, char* boost, char* terrain) 
 
 
 
-void rebuild_path(int paths[], int start_index, int end_index, Graph graph) {
-
+void rebuild_path(int paths[], int start_index, int end_index, Graph graph,
+                  float route_cost[], int route_length[], char route_terrain[][MAX_STRING]) 
+{
     int path[graph.totalCheckpoints];
     int path_length = 0;
 
     int current = end_index;
 
-    while (current != start_index) {
+    // Build path backwards, but stop if we hit -1 (no parent)
+    while (current != start_index && current != -1) {
+        if (path_length >= graph.totalCheckpoints) {
+            fprintf(stderr, "Path too long (possible corrupt parent chain). Aborting.\n");
+            return;
+        }
         path[path_length] = current;
         path_length++;
         current = paths[current];
     }
+
+    // If current == -1 there's no path
+    if (current == -1) {
+        printf("No path found from %s (%d) to %s (%d).\n",
+               graph.checkpoints[start_index].name, graph.checkpoints[start_index].id,
+               graph.checkpoints[end_index].name, graph.checkpoints[end_index].id);
+        return;
+    }
+
+    // push start
     path[path_length] = start_index;
     path_length++;
 
-    printf("Optimal path:\n");
+    float total_effective = 0;   // accumulate total cost
+
+    printf("Here is the shortest path for this circuit:\n\n");
+
+    // Print path forward
     for (int i = path_length - 1; i >= 0; i--) {
-        printf("%s (%d)\n", graph.checkpoints[path[i]].name, graph.checkpoints[path[i]].id);
+
+        int index = path[i];
+
+        // Print checkpoint
+        printf("%s (%d)\n", graph.checkpoints[index].name, graph.checkpoints[index].id);
+
+        // If not last node, print route info leading to next checkpoint
+        if (i > 0) {
+            int next = path[i - 1];
+
+            printf("::: +%.0f SRU (%s) :::\n",
+                   route_cost[next],
+                   route_terrain[next]);
+
+            total_effective += route_cost[next];
+        }
     }
-    printf("\nTotal checkpoints in path: %d\n", path_length);
+
+    printf("\nTotal Effective Distance: %.0f SRU\n", total_effective);
 }
+
+
 
 
 /*function dijkstra(G, S)
@@ -356,11 +400,20 @@ void Dijkstra(Graph graph, int start_index, int end_index, char* vehicle_type) {
     int paths[graph.totalCheckpoints];
     int visited[graph.totalCheckpoints];
 
+    float route_cost[graph.totalCheckpoints]; // to hold the cost of each route
+    int route_length[graph.totalCheckpoints];
+    char route_terrain[graph.totalCheckpoints][MAX_STRING];
+
+
 
     for (int i = 0; i < graph.totalCheckpoints; i++) {
         distance[i] = INFINITY;
         visited[i] = 0;
         paths[i] = -1;
+
+        route_cost[i] = 0.0; 
+        route_length[i] = 0; 
+        route_terrain[i][0] = '\0';  
     }
 
     distance[start_index] = 0.0;
@@ -371,7 +424,7 @@ void Dijkstra(Graph graph, int start_index, int end_index, char* vehicle_type) {
     char boost[MAX_STRING];
 
 
-    while (current != -1 /*&& current != end_index*/) {
+    while (current != -1 && current != end_index) {
 
         Checkpoint current_checkpoint = graph.checkpoints[current];
         strcpy(boost, current_checkpoint.boost);       // Update the boost of the current checkpoint
@@ -390,11 +443,15 @@ void Dijkstra(Graph graph, int start_index, int end_index, char* vehicle_type) {
                 float total_cost = checkpoint_boost(base_cost, length, boost, terrain);
 
 
-                float newDist = distance[current] + total_cost;
+                float new_dist = distance[current] + total_cost;
 
-                if (newDist < distance[dest]) {
-                    distance[dest] = newDist;
+                if (new_dist < distance[dest]) {
+                    distance[dest] = new_dist;
                     paths[dest] = current;
+
+                    route_cost[dest] = total_cost;
+                    route_length[dest] = length;
+                    strcpy(route_terrain[dest], terrain);
                 }
             }
         }
@@ -417,7 +474,7 @@ void Dijkstra(Graph graph, int start_index, int end_index, char* vehicle_type) {
             
     }
 
-    rebuild_path(paths, start_index, end_index, graph);
+    rebuild_path(paths, start_index, end_index, graph, route_cost, route_length, route_terrain);
 
 }
 
@@ -438,7 +495,7 @@ void vehicleOptimization(){
 
     printf("\nEnter a type of vehicle (TERRESTRIAL, AQUATIC, AERIAL or LAVA) or ANY: ");
     scanf("%s", vehicle_type);
-    vehicle_type[strlen(vehicle_type)] = '\0';
+    //vehicle_type[strlen(vehicle_type)] = '\0';
 
     int selected_circuit = option - 1;
 
