@@ -6,6 +6,72 @@
 #define MAX_STRING 100
 #define MAX_FLOAT 3.40282347e+38
 
+//#include "PQgraph.h"      // Priority queue for branch & bound
+// --- Priority queue structure ---
+typedef struct {
+    int id;
+    float cost;        // g(n): real cost so far
+    float heuristic;   // h(n): estimated cost to the goal
+    float f;           // optional: g + h
+    // ... other fields
+} PQNode;
+
+typedef struct {
+    PQNode* items;   // Array of nodes
+    int size;      // Current number of nodes in the queue
+} PrioQ;
+
+
+// --- Insert a node into the priority queue ---
+void PQ_insert(PrioQ* PQ, PQNode n) {
+    // Allocate space for the new node
+    PQ->items = (PQNode*) realloc(PQ->items, (PQ->size + 1) * sizeof(PQNode));
+    if (PQ->items == NULL) {
+        printf("Memory allocation error!\n");
+        exit(1);
+    }
+
+    // Add node at the end
+    PQ->items[PQ->size] = n;
+    PQ->size++;
+}
+
+// --- Poll the node with the smallest cost from the queue ---
+PQNode PQ_poll(PrioQ* PQ) {
+    int best = 0;
+
+    // Find the node with minimum cost
+    for (int i = 1; i < PQ->size; i++) {
+        if (PQ->items[i].heuristic < PQ->items[best].heuristic) {
+            best = i;
+        }
+    }
+
+    // Store the best node to return
+    PQNode n = PQ->items[best];
+
+    // Move the last node to fill the gap
+    PQ->items[best] = PQ->items[PQ->size - 1];
+    PQ->size--;
+
+    return n;
+}
+
+// --- Peek at the node with the smallest cost without removing it ---
+PQNode PQ_peek(PrioQ* PQ) {
+    int best = 0;
+
+    for (int i = 1; i < PQ->size; i++) {
+        if (PQ->items[i].heuristic < PQ->items[best].heuristic) {
+            best = i;
+        }
+    }
+
+    return PQ->items[best];
+}
+
+
+
 // Basic route information
 typedef struct {
     int origin;
@@ -315,8 +381,7 @@ float checkpoint_boost(float base_cost, int length, char* boost, char* terrain) 
 
 
 
-void rebuild_path(int paths[], int start_index, int end_index, Graph graph,
-                  float route_cost[], int route_length[], char route_terrain[][MAX_STRING]) 
+void rebuild_path(int paths[], int start_index, int end_index, Graph graph, float route_cost[], int route_length[], char route_terrain[][MAX_STRING]) 
 {
     int path[graph.totalCheckpoints];
     int path_length = 0;
