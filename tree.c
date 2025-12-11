@@ -348,13 +348,39 @@ void printTabs(int level) {
     }
 }
 
-void printNode(treenode* node, char isLeft) {
-    if (isLeft)
-        printf("┌── ");
-    else
-        printf("└── ");
+void printColoredText(Fighter fighter) {
+    int r, g, b;
 
-    printf("%s (%d)\n", node->fighter.name, node->fighter.power_lvl);
+    if (fighter.colour[0] == '#') {
+        
+        //Example "#EC9044" -> red=236, green=144, blue=68
+        sscanf(fighter.colour + 1, "%02x%02x%02x", &r, &g, &b);
+
+        //Tell the terminal to use this color for text
+        printf("\033[38;2;%d;%d;%dm", r, g, b);
+    }
+    else {
+        // Default color (white)
+        printf("\033[38;2;255;255;255m");
+    }
+    
+    printf("%s (%d)\n", fighter.name, fighter.power_lvl);
+
+    // Reset color
+    printf("\033[0m");
+}
+
+void printNode(treenode* node, char isLeft) {
+
+    
+    if (isLeft) {
+        printf("┌── ");
+    }
+    else {
+        printf("└── ");
+    }
+
+    printColoredText(node->fighter);
 }
 
 //tree traversal (right -> node -> left)
