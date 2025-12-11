@@ -20,12 +20,17 @@ typedef struct treenode {
     struct treenode *right;
     struct treenode *left;
     int height;
-    int balance_factor;
 }treenode;
 
 
 treenode* root = NULL;
 
+int max(int a, int b) {
+    if (a > b) {
+        return a;
+    }
+    return b;
+}
 
 int getHeight(treenode* node) {
 
@@ -66,7 +71,7 @@ treenode *rightRotate(treenode *node) {
     prev->height = max(getHeight(prev->left), getHeight(prev->right)) + 1;  //now this node is the new root
 
     // Return old root to check against balancing
-    return node; 
+    return prev; 
 }
 
 treenode *leftRotate(treenode *node) {
@@ -82,12 +87,8 @@ treenode *leftRotate(treenode *node) {
     prev->height = max(getHeight(prev->left), getHeight(prev->right)) + 1;  //now this node is the new root
 
     // Return old root to check against balancing
-    return node; 
+    return prev; 
 }
-
-
-
-
 
 
 treenode *createnode(Fighter fighter){
@@ -96,28 +97,56 @@ treenode *createnode(Fighter fighter){
         newnode->fighter = fighter;
         newnode->left = NULL;
         newnode->right = NULL;
+        newnode->height = 1;
     }
     return newnode;
 }
 
-void insertNode(treenode** root_pointer, Fighter fighter){
+void insertNode(treenode* *node, Fighter fighter){
 
-    treenode *node = *root_pointer;
-
-    if (node == NULL) {
-        (*root_pointer) = createnode(fighter);
+    if (*node == NULL) {
+        *node = createnode(fighter);
         return;
     }
-    if (fighter.power_lvl == node->fighter.power_lvl) {
-        //Nothing // Duplicate ID
+    if (fighter.power_lvl < (*node)->fighter.power_lvl) {
+        insertNode(&(*node)->left, fighter);
     }
-    if (fighter.power_lvl < node->fighter.power_lvl) {
-        return insertNode(&(node->left), fighter);
+    else if (fighter.power_lvl > (*node)->fighter.power_lvl) {
+        insertNode(&(*node)->right, fighter);
     }
     else {
-        return insertNode(&(node->right), fighter);
+        //duplicate power levels: do nothing
+        return;
+    }
+
+    (*node)->height = 1 + max(getHeight((*node)->left), getHeight((*node)->right));
+
+    int balance_factor = getBalanceFactor(*node);
+
+    // Left Left Case
+    if (balance_factor > 1 && fighter.power_lvl < (*node)->left->fighter.power_lvl) {
+        *node = rightRotate(*node);
+        return;
+    }
+    // Right Right Case
+    if (balance_factor < -1 && fighter.power_lvl > (*node)->right->fighter.power_lvl) {
+        *node = leftRotate(*node);
+        return;
+    }
+    // Left Right Case
+    if (balance_factor > 1 && fighter.power_lvl > (*node)->left->fighter.power_lvl) {
+        (*node)->left = leftRotate((*node)->left);
+        *node = rightRotate(*node);
+        return;
+    }
+    // Right Left Case
+    if (balance_factor < -1 && fighter.power_lvl < (*node)->right->fighter.power_lvl) {
+        (*node)->right = rightRotate((*node)->right);
+        *node = leftRotate(*node);
+        return;
     }
 }
+
 
 int readfile(){
     FILE *f;
@@ -197,7 +226,7 @@ treenode *findMin (treenode *node) {
     return current;
 }
 
-void deleteNode(treenode** root_pointer, int id) {
+void deleteNode(treenode* *root_pointer, int power_lvl) {
 
     treenode *node = *root_pointer;
     treenode *inOrderSuccessor;
@@ -206,11 +235,11 @@ void deleteNode(treenode** root_pointer, int id) {
         return;
     }
 
-    if (id < node->fighter.id) {
-        return deleteNode(&(node->left), id);
+    if (power_lvl < node->fighter.power_lvl) {
+        return deleteNode(&(node->left), power_lvl);
     }
-    else if (id > node->fighter.id){
-        return deleteNode(&(node->right), id);
+    else if (power_lvl > node->fighter.power_lvl){
+        return deleteNode(&(node->right), power_lvl);
     }
     else {
         // Node found, perform deletion (not implemented)
@@ -225,7 +254,7 @@ void deleteNode(treenode** root_pointer, int id) {
         else {
             inOrderSuccessor = findMin(node->right);
             node->fighter = inOrderSuccessor->fighter;
-            deleteNode(&(node->right), inOrderSuccessor->fighter.id);
+            deleteNode(&(node->right), inOrderSuccessor->fighter.power_lvl);
         }
     }
 }
@@ -280,7 +309,6 @@ void visualRepresentation(treenode* root){
     printf("\nVisual representation of the fighter roster tree:\n\n");
     printtree(root, 0);
 }
-
 
 
 int findNode(treenode* root, int power_lvl, Fighter *foundFighter) {
@@ -374,15 +402,15 @@ int main(){
 
     int numFighters = readfile();
 
-    addFighter(numFighters);
+    //addFighter(numFighters);
 
-    removeFighter();
+    //removeFighter();
 
     visualRepresentation(root);
 
-    searchFighter(root);
+    //searchFighter(root);
 
-    counterPick();
+    //counterPick();
 
     return 0;
 }
