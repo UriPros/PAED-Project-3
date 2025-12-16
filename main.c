@@ -3,154 +3,180 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include "trees.h"
 
 
-int opt = 0;
-int kopt = ' ';
-int bopt = ' ';
-int wopt = ' ';
 
 
-int StartMenu(int option) {
-printf("\n._/\\ Super Structure Bros /\\_.\n");
-printf("\n");
-printf("1. Kart (Graphs)\n");
-printf("2. Brawl (Trees)\n");
-printf("3. Wonder (Tables)\n");
-printf("\n");
-printf("4. Stop\n");
-printf("\n");
-scanf("Pick a game: %d", &option);
+int StartMenu() {
+    int option = 0;
 
-return option;
+    printf("\n._/\\ Super Structure Bros /\\_.\n");
+    printf("\n1. Kart (Graphs)\n");
+    printf("2. Brawl (Trees)\n");
+    printf("3. Wonder (Tables)\n");
+    printf("\n4. Stop\n");
+    printf("\nPick a game: ");
+    scanf("%d", &option);
+
+    return option;
 }
 
-char StartMenuKart(char kartOption) {
-printf("\n");
-printf("A. Circuit detection");
-printf("B. Vehicle optimization\n");
-printf("C. Go back\n");
-printf("\n");
-scanf("Wich tool do you want to use? %c", &kartOption);
+char StartMenuKart() {
+    char kartOption;
 
-return kartOption;
+    printf("\n\tA. Circuit detection\n");
+    printf("\tB. Vehicle optimization\n");
+    printf("\n\tC. Go back\n");
+    printf("\nWhich tool do you want to use? ");
+    scanf(" %c", &kartOption);
+
+
+    return kartOption;
 }
-char StartMenuBrawl(char brawlOption) {
-printf("\n");
-printf("A. Add fighter");
-printf("B. Remove fighther");
-printf("C. Visual representation");
-printf("D. Search fighter");
-printf("E. Counterpick\n");
-printf("F. Go back\n");
-scanf("Wich tool do you want to use? %c", &brawlOption);
+char StartMenuBrawl() {
+    char brawlOption;
 
-return brawlOption;
+    printf("\n\tA. Add fighter\n");
+    printf("\tB. Remove fighter\n");
+    printf("\tC. Visual representation\n");
+    printf("\tD. Search fighter\n");
+    printf("\tE. Counterpick\n");
+    printf("\n\tF. Go back\n");
+    printf("\nWhich tool do you want to use? ");
+    scanf(" %c", &brawlOption);
+
+    return brawlOption;
 }
+char StartMenuWonder() {
+    char wonderOption;
 
-char StartMenuWonder(char wonderOption) {
-printf("\n");
-printf("A. Add element");
-printf("B. Delete element");
-printf("C. Lookup");
-printf("D. Search by area");
-printf("E. Statistics\n");
-printf("F. Go back\n");
-scanf("Wich tool do you want to use? %c", &wonderOption);
+    printf("\n\tA. Add element\n");
+    printf("\tB. Delete element\n");
+    printf("\tC. Lookup\n");
+    printf("\tD. Search by area\n");
+    printf("\tE. Statistics\n");
+    printf("\n\tF. Go back\n");
+    printf("\nWhich tool do you want to use? ");
+    scanf(" %c", &wonderOption);
 
-return wonderOption;
+    return wonderOption;
 }
 
 int main() {
 
+    int option = 0;
 
-int option = StartMenu(opt);
+    while (option != 4) {
 
-while (opt != 4) {
-    switch(option) {
+        option = StartMenu();
 
-        case 1:
-            char kartOption = StartMenuKart(kopt);
-            switch(kartOption) {
+        switch(option) {
 
-                case 'A':
-                    // funció
-                    break;
+            case 1: {
 
-                case 'B':
-                    // funció
-                    break;
+                char kartOption = 0;
 
-                case 'C':
-                    break;
-            }
+                while (kartOption != 'C') {
 
-        case 2:
-            char brawlOption = StartMenuBrawl(bopt);
-            switch(brawlOption) {
+                    kartOption = StartMenuKart();
 
-                case 'A':
-                    // funció
-                    break;
+                    switch(kartOption) {
 
-                case 'B':
-                    // funció
-                    break;
+                        case 'A':
+                            // funció
 
-                case 'C':
-                    // funció
-                    break;
+                        case 'B':
+                            // funció
 
-                case 'D':
-                    // funció
-                    break;
+                        case 'C':
+                            break;
+                    }
+                }
+            } break;
 
-                case 'E':
-                    // funció
-                    break;
+            case 2: {
+                
+                char brawlOption = 0;
 
-                case 'F':
-                    break;
-            }
-    
-        case 3:
-            char wonderOption = StartMenuWonder(wopt);
-            switch(wonderOption) {
+                int numFighters = readTreeFile();
 
-                case 'A':
-                    // funció
-                    break;
+                while (brawlOption != 'F') {
 
-                case 'B':
-                    // funció
-                    break;
+                    brawlOption = StartMenuBrawl();
 
-                case 'C':
-                    // funció
-                    break;
+                    switch(brawlOption) {
 
-                case 'D':
-                    // funció
-                    break;
+                        case 'A':
+                            // funció
+                            addFighter(numFighters);
+                            break;
 
-                case 'E':
-                    // funció
-                    break;
+                        case 'B':
+                            // funció
+                            removeFighter();
+                            break;
 
-                case 'F':
-                    break;
-            }
-            
-        case 4:
-            printf("Turning Super Structure Bros off\n");
-            printf("._/\  ·  \___/\___/  ·  /\_.\n");
-            break;
+                        case 'C':
+                            // funció
+                            visualRepresentation(root);
+                            break;
+
+                        case 'D':
+                            // funció
+                            searchFighter(root);
+                            break;
+
+                        case 'E':
+                            // funció
+                            counterPick();
+                            break;
+
+                        case 'F':
+                            break;
+                    }
+                }
+
+            } break;
+        
+            case 3: {
+                char wonderOption = 0; StartMenuWonder();
+
+                while (wonderOption != 'F') {
+
+                    wonderOption = StartMenuWonder();
+
+                    switch(wonderOption) {
+
+                        case 'A':
+                            // funció
+
+                        case 'B':
+                            // funció
+
+                        case 'C':
+                            // funció
+
+                        case 'D':
+                            // funció
+
+                        case 'E':
+                            // funció
+
+                        case 'F':
+                            break;
+                    }
+                }
+            } break;
+                
+            case 4: {
+                printf("\nTurning Super Structure Bros off.\n");
+                printf("\n._/\\  ·  \\___/\\___/  ·  /\\_.\n");
+                break;
+            } break;
+        }
     }
-}
 
 
-
-
-
-return 0;
+    return 0;
 }
