@@ -1,30 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define MAX_STRING 100
-
-
-typedef struct {
-    int id;
-    char name[MAX_STRING];
-    int power_lvl;
-    char colour[MAX_STRING];
-    char ability[MAX_STRING];
-    int price;
-} Fighter;
-
-
-typedef struct treenode {
-    Fighter fighter;
-    struct treenode *right;
-    struct treenode *left;
-    int height;
-}treenode;
+#include "trees.h"
 
 
 treenode* root = NULL;
 
+
+//AVL TREE FUNCTIONS
 int max(int a, int b) {
     if (a > b) {
         return a;
@@ -91,6 +74,8 @@ treenode *leftRotate(treenode *node) {
 }
 
 
+
+// Creating Tree Functions
 treenode *createnode(Fighter fighter){
     treenode* newnode = (treenode*)malloc(sizeof(treenode));
     if (newnode != NULL) {
@@ -149,8 +134,7 @@ void insertNode(treenode* *root, Fighter fighter){
     }
 }
 
-
-int readfile(){
+int readTreeFile(){
     FILE *f;
     Fighter fighter;
     int numFighters;
@@ -185,17 +169,13 @@ int readfile(){
 }
 
 
-
+// Add fighter function
 void addFighter(int numFighters){
 
     Fighter newFighter;
 
     printf("\nFighter Identifier: ");
     scanf("%d", &newFighter.id);
-    while (newFighter.id <= numFighters) {
-        printf("Invalid ID. Please enter a positive integer: ");
-        scanf("%d", &newFighter.id);
-    }
 
     printf("Fighter Name: ");
     scanf(" %99[^\n]", newFighter.name);
@@ -218,7 +198,7 @@ void addFighter(int numFighters){
 }
 
 
-
+// Revmove fighter functions
 treenode *findMin (treenode *node) {
 
     while (node && node->left != NULL) {
@@ -298,7 +278,6 @@ void deleteNode(treenode* *root, int power_lvl) {
 
 }
 
-
 treenode* findFighterById(treenode* node, int id) {
 
     treenode* foundNode;
@@ -317,7 +296,6 @@ treenode* findFighterById(treenode* node, int id) {
 
     return findFighterById(node->right, id);
 }
-
 
 void removeFighter(){
 
@@ -341,7 +319,7 @@ void removeFighter(){
 }
 
 
-//falta implementar els colors i com volem que sigui el tree visualment
+// Visual representation functions
 void printTabs(int level) {
     for (int i = 0; i < level; i++) {
         printf("\t");
@@ -406,7 +384,7 @@ void visualRepresentation(treenode* root) {
 }
 
 
-
+// Search fighter functions
 int findNode(treenode* root, int power_lvl, Fighter *foundFighter) {
 
     if (root == NULL) {
@@ -450,6 +428,7 @@ void searchFighter(treenode* root){
 }
 
 
+// Counterpick functions
 //Inorder traversal to find and print counters (first left, then root, then right)
 int findCounters(treenode* node, int min_atk, int max_atk) {
 
@@ -473,7 +452,7 @@ int findCounters(treenode* node, int min_atk, int max_atk) {
     return count;
 }
 
-void counterPick(){
+void counterPick() {
        
     int min_atk, max_atk;
     int num_counters = 0;
@@ -491,22 +470,4 @@ void counterPick(){
 
     printf("\nTotal number of counters found: %d\n\n", num_counters);
     
-}
-
-
-int main(){
-
-    int numFighters = readfile();
-
-    //addFighter(numFighters);
-    
-    //removeFighter();
-
-    visualRepresentation(root);
-
-    //searchFighter(root);
-
-    //counterPick();
-
-    return 0;
 }
