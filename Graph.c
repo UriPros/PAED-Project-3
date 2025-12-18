@@ -6,14 +6,13 @@
 #define MAX_STRING 100
 #define MAX_FLOAT 3.40282347e+38
 
+
+
 //#include "PQgraph.h"      // Priority queue for branch & bound
 // --- Priority queue structure ---
 typedef struct {
     int id;
-    float cost;        // g(n): real cost so far
-    float heuristic;   // h(n): estimated cost to the goal
-    float f;           // optional: g + h
-    // ... other fields
+    float dist; 
 } PQNode;
 
 typedef struct {
@@ -21,55 +20,80 @@ typedef struct {
     int size;      // Current number of nodes in the queue
 } PrioQ;
 
+static void swap(PQNode *a, PQNode *b) {
+    PQNode tmp = *a;
+    *a = *b;
+    *b = tmp;
+}
 
-// --- Insert a node into the priority queue ---
-void PQ_insert(PrioQ* PQ, PQNode n) {
-    // Allocate space for the new node
-    PQ->items = (PQNode*) realloc(PQ->items, (PQ->size + 1) * sizeof(PQNode));
-    if (PQ->items == NULL) {
-        printf("Memory allocation error!\n");
+void PQ_insert(PrioQ *PQ, PQNode n) {
+    PQ->items = realloc(PQ->items, (PQ->size + 1) * sizeof(PQNode));
+    if (!PQ->items) {
+        printf("Memory allocation error\n");
         exit(1);
     }
 
-    // Add node at the end
-    PQ->items[PQ->size] = n;
+    int i = PQ->size;
+    PQ->items[i] = n;
     PQ->size++;
+
+    // Heapify up
+    while (i > 0) {
+        int parent = (i - 1) / 2;
+
+        if (PQ->items[parent].dist <= PQ->items[i].dist)
+            break;
+
+        swap(&PQ->items[parent], &PQ->items[i]);
+        i = parent;
+    }
 }
 
-// --- Poll the node with the smallest cost from the queue ---
-PQNode PQ_poll(PrioQ* PQ) {
-    int best = 0;
-
-    // Find the node with minimum cost
-    for (int i = 1; i < PQ->size; i++) {
-        if (PQ->items[i].heuristic < PQ->items[best].heuristic) {
-            best = i;
-        }
+PQNode PQ_poll(PrioQ *PQ) {
+    if (PQ->size == 0) {
+        printf("Priority queue empty\n");
+        exit(1);
     }
 
-    // Store the best node to return
-    PQNode n = PQ->items[best];
+    PQNode min = PQ->items[0];
 
-    // Move the last node to fill the gap
-    PQ->items[best] = PQ->items[PQ->size - 1];
+    PQ->items[0] = PQ->items[PQ->size - 1];
     PQ->size--;
 
-    return n;
-}
+    int i = 0;
 
-// --- Peek at the node with the smallest cost without removing it ---
-PQNode PQ_peek(PrioQ* PQ) {
-    int best = 0;
+    // Heapify down
+    while (1) {
+        int left = 2*i + 1;
+        int right = 2*i + 2;
+        int smallest = i;
 
-    for (int i = 1; i < PQ->size; i++) {
-        if (PQ->items[i].heuristic < PQ->items[best].heuristic) {
-            best = i;
-        }
+        if (left < PQ->size &&
+            PQ->items[left].dist < PQ->items[smallest].dist)
+            smallest = left;
+
+        if (right < PQ->size &&
+            PQ->items[right].dist < PQ->items[smallest].dist)
+            smallest = right;
+
+        if (smallest == i)
+            break;
+
+        swap(&PQ->items[i], &PQ->items[smallest]);
+        i = smallest;
     }
 
-    return PQ->items[best];
+    return min;
 }
 
+PQNode PQ_peek(PrioQ *PQ) {
+    if (PQ->size == 0) {
+        printf("Priority queue empty\n");
+        exit(1);
+    }
+
+    return PQ->items[0];
+}
 
 
 // Basic route information
@@ -90,6 +114,7 @@ typedef struct {
 
     Route* routes;   // adjacency list head
     int numRoutes;
+    int routesCapacity;
 } Checkpoint;
 
 // Main graph
@@ -103,7 +128,20 @@ typedef struct {
     int* end_indices; 
 } Graph;
 
+typedef struct {
+    float totalDist;
+
+    int *path;
+    int pathLen;
+
+    float *routeCost;
+    int *routeLength;
+    char (*routeTerrain)[MAX_STRING];
+} DijkstraResult;
+
+
 Graph graph; 
+
 
 
 // ----------------CREATE GRAPH FROM FILE----------------
@@ -117,13 +155,12 @@ void readfile() {
         return;
     }
 
+    //1a part
     fscanf(f, "%d\n", &graph.totalCheckpoints);
 
     graph.num_circuits = 0;
 
-
     graph.checkpoints = (Checkpoint*)malloc(graph.totalCheckpoints * sizeof(Checkpoint));
-
 
     for (int i = 0; i < graph.totalCheckpoints; i++) {
         int id;
@@ -138,44 +175,61 @@ void readfile() {
         graph.checkpoints[id - 1].start = strcmp(startStr, "True") == 0;
         graph.checkpoints[id - 1].end   = strcmp(endStr, "True") == 0;
 
+        graph.checkpoints[id - 1].routes = NULL;
+        graph.checkpoints[id - 1].numRoutes = 0;
+        graph.checkpoints[id - 1].routesCapacity = 0;
+
         if (graph.checkpoints[id - 1].start == 1) {
             graph.num_circuits++;
         }
-
-        graph.checkpoints[id - 1].routes = malloc(graph.totalCheckpoints * sizeof(Route)); //hem de canviar aixó per ferho eficient
-        graph.checkpoints[id - 1].numRoutes = 0;
-
-
     }
     
     graph.start_indices = malloc(graph.num_circuits * sizeof(int));
     graph.end_indices   = malloc(graph.num_circuits * sizeof(int));       
-        
-    fscanf(f, "%d\n", &graph.totalRoutes);
     
+
+    //2a part
+    fscanf(f, "%d\n", &graph.totalRoutes);
+
     for (int i = 0; i < graph.totalRoutes; i++) {
         int originID, destID, length;
         char terrain[MAX_STRING];
+        Checkpoint* route_origin;
 
-        fscanf(f, "%d;%d;%d;%s\n",
-            &originID,
-            &destID,
-            &length,
-            terrain
-        );
+        fscanf(f, "%d;%d;%d;%s\n", &originID, &destID, &length, terrain);
 
+        //Assignar l'origen de la ruta al checkpoint corresponent
+        route_origin = &graph.checkpoints[originID - 1];
 
-        int index = originID - 1;
-        int r = graph.checkpoints[index].numRoutes;
+        if (route_origin->routesCapacity == 0) {
+            route_origin->routesCapacity = 2;
+            route_origin->routes = malloc(route_origin->routesCapacity * sizeof(Route));
 
-        graph.checkpoints[index].routes[r].origin = originID;
-        graph.checkpoints[index].routes[r].destination = destID;
-        graph.checkpoints[index].routes[r].length = length;
-        strcpy(graph.checkpoints[index].routes[r].terrain, terrain);
+            if (!route_origin->routes) {
+                printf("Memory allocation error\n");
+                fclose(f);
+                return;
+            }
+        }
 
-        graph.checkpoints[index].numRoutes++;
-        
+        // Si capacity is full -> double it
+        if (route_origin->numRoutes >= route_origin->routesCapacity) {
+            route_origin->routesCapacity *= 2;
+            route_origin->routes = realloc(route_origin->routes, route_origin->routesCapacity * sizeof(Route));
 
+            if (!route_origin->routes) {
+                printf("Memory allocation error\n");
+                fclose(f);
+                return;
+            }
+        }
+
+        route_origin->routes[route_origin->numRoutes].origin = originID;
+        route_origin->routes[route_origin->numRoutes].destination = destID;
+        route_origin->routes[route_origin->numRoutes].length = length;
+        strcpy(route_origin->routes[route_origin->numRoutes].terrain, terrain);
+
+        route_origin->numRoutes++;
     }
     fclose(f);
 
@@ -226,11 +280,24 @@ void printStructs(Checkpoint* checkpoints, Route* routes, int totalCheckpoints) 
 }
 
 void freeGraph() {
+
+    // Free each checkpoint's routes
     for (int i = 0; i < graph.totalCheckpoints; i++) {
         free(graph.checkpoints[i].routes);
     }
+
+    // Free the array of checkpoints
     free(graph.checkpoints);
+    // Free start/end indices arrays
+    free(graph.start_indices);
+    free(graph.end_indices);
+
+    // Optional: set pointers to NULL to avoid dangling pointers
+    graph.checkpoints = NULL;
+    graph.start_indices = NULL;
+    graph.end_indices = NULL;
 }
+
 
 void printCircuit(Checkpoint start, Checkpoint end, int count, int circuits_found) {
     printf("Circuit %d)\n\n", circuits_found);
@@ -241,36 +308,30 @@ void printCircuit(Checkpoint start, Checkpoint end, int count, int circuits_foun
 
 
 // ----------------CIRCUIT DETECTION FUNCTION----------------
-void DFS(Graph graph, Checkpoint current, int *index_end, int visited[], int *count) {
+void DFS(Checkpoint *current, int *index_end, int visited[], int *count) {
 
     // Mark the current node as visited and increment count of checkpoints in circuit
-    visited[current.id - 1] = 1;
+    visited[current->id - 1] = 1;
     (*count)++;
 
-    if (current.end == 1) {
-        *index_end = current.id -1;
+    if (current->end == 1) {
+        *index_end = current->id -1;
+        return;
     }
 
     // Recur for all the vertices adjacent to this checkpoint
-    for (int i = 0; i < current.numRoutes; i++) {
+    for (int i = 0; i < current->numRoutes; i++) {
 
-        int dest = current.routes[i].destination;
+        int dest = current->routes[i].destination;
 
         if (!visited[dest - 1]) {
-            DFS(graph, graph.checkpoints[dest - 1], index_end, visited, count);
+            DFS(&graph.checkpoints[dest - 1], index_end, visited, count);
         }
-        /*else if (visited[dest - 1] && graph.checkpoints[dest - 1].end) {
-            (*index_end) = dest - 1;
-        }*/
     }
 }
 
-
-
 void detectCircuits() {
 
-    int visited[graph.totalCheckpoints];
-    memset(visited, 0, graph.totalCheckpoints * sizeof(int));
     int circuits_found = 0;
 
     printf("The following %d circuits have been found:\n\n", graph.num_circuits);
@@ -283,7 +344,7 @@ void detectCircuits() {
             return;
         }
 
-        if (graph.checkpoints[i].start == 1 && !visited[graph.checkpoints[i].id - 1]) {
+        if (graph.checkpoints[i].start == 1) {
 
             //Create variables needed for the circuit
             int checkpoints_in_circuit = 0;
@@ -291,7 +352,10 @@ void detectCircuits() {
             Checkpoint end;
             int index_end = graph.checkpoints[i].id;        //inicialitzar el end al start in case that there is only 1 node
 
-            DFS(graph, graph.checkpoints[i], &index_end, visited, &checkpoints_in_circuit);
+            int visited[graph.totalCheckpoints];
+            memset(visited, 0, graph.totalCheckpoints * sizeof(int));
+
+            DFS(&graph.checkpoints[i], &index_end, visited, &checkpoints_in_circuit);
 
             start = graph.checkpoints[i];
             end = graph.checkpoints[index_end];
@@ -330,31 +394,6 @@ float terrainMultiplier(char* vehicle_type, char* terrain) {
 }
 
 
-/*float checkpoint_boost(float cost, char* boost_type, char* terrain) {
-
-    if (strcmp(boost_type, "NONE") == 0) {
-        return cost; // no effect
-    }
-
-    if (strcmp(boost_type, "SPEED") == 0) {
-        return cost * 0.75; // 25% faster
-    }
-
-    if (strcmp(boost_type, "JUMP") == 0) {
-        // ignores penalties for next route
-        return cost / terrainMultiplier("AERIAL", terrain); // AERIAL is chosen as a vehicle type that never gets penalized on any terrain except CUT. 
-                                                            //(reference “unpenalized” vehicle to cancel the terrain multiplier)
-    }
-
-    if (strcmp(boost_type, "ITEM") == 0) {
-        if (strcmp(terrain, "CUT") == 0) {
-            return cost; // cannot ignore CUT
-        } 
-        return cost / terrainMultiplier("AERIAL", terrain); // ignores penalties
-    }
-
-    return cost; // fallback
-}*/
 
 float checkpoint_boost(float base_cost, int length, char* boost, char* terrain) {
 
@@ -381,212 +420,241 @@ float checkpoint_boost(float base_cost, int length, char* boost, char* terrain) 
 
 
 
-void rebuild_path(int paths[], int start_index, int end_index, Graph graph, float route_cost[], int route_length[], char route_terrain[][MAX_STRING]) 
-{
-    int path[graph.totalCheckpoints];
-    int path_length = 0;
-
-    int current = end_index;
-
-    // Build path backwards, but stop if we hit -1 (no parent)
-    while (current != start_index && current != -1) {
-        if (path_length >= graph.totalCheckpoints) {
-            fprintf(stderr, "Path too long (possible corrupt parent chain). Aborting.\n");
-            return;
-        }
-        path[path_length] = current;
-        path_length++;
-        current = paths[current];
-    }
-
-    // If current == -1 there's no path
-    if (current == -1) {
-        printf("No path found from %s (%d) to %s (%d).\n",
-               graph.checkpoints[start_index].name, graph.checkpoints[start_index].id,
-               graph.checkpoints[end_index].name, graph.checkpoints[end_index].id);
-        return;
-    }
-
-    // push start
-    path[path_length] = start_index;
-    path_length++;
-
-    float total_effective = 0;   // accumulate total cost
-
+void print_saved_path(int path[], int pathLen, float cost[], int length[], char terrain[][MAX_STRING]) {
+    float total = 0;
     printf("Here is the shortest path for this circuit:\n\n");
 
-    // Print path forward
-    for (int i = path_length - 1; i >= 0; i--) {
+    for (int i = pathLen - 1; i >= 0; i--) {
+        int idx = path[i];
+        printf("%s (%d)\n",
+               graph.checkpoints[idx].name,
+               graph.checkpoints[idx].id);
 
-        int index = path[i];
-
-        // Print checkpoint
-        printf("%s (%d)\n", graph.checkpoints[index].name, graph.checkpoints[index].id);
-
-        // If not last node, print route info leading to next checkpoint
         if (i > 0) {
             int next = path[i - 1];
-
-            printf("::: +%.0f SRU (%s) :::\n",
-                   route_cost[next],
-                   route_terrain[next]);
-
-            total_effective += route_cost[next];
+            printf("::: +%.2f SRU (%s) :::\n",
+                   cost[next], terrain[next]);
+            total += cost[next];
         }
     }
 
-    printf("\nTotal Effective Distance: %.0f SRU\n", total_effective);
+    printf("\nTotal Effective Distance: %.2f SRU\n", total);
 }
 
 
 
-
-/*function dijkstra(G, S)
-    for each vertex V in G
-        distance[V] <- infinite
-        previous[V] <- NULL
-        If V != S, add V to Priority Queue Q
-    distance[S] <- 0
-	
-    while Q IS NOT EMPTY
-        U <- Extract MIN from Q
-        for each unvisited neighbour V of U
-            tempDistance <- distance[U] + edge_weight(U, V)
-            if tempDistance < distance[V]
-                distance[V] <- tempDistance
-                previous[V] <- U
-    return distance[], previous[]*/
-
-void Dijkstra(Graph graph, int start_index, int end_index, char* vehicle_type) {
-
-    printf("\n\n\nDijkstra's algorithm called for vehicle type: %s from %s to %s\n\n", vehicle_type, graph.checkpoints[start_index].name, graph.checkpoints[end_index].name);
-
-    float distance[graph.totalCheckpoints]; // array to hold the shortest distance from start to each checkpoint
-    int paths[graph.totalCheckpoints];
-    int visited[graph.totalCheckpoints];
-
-    float route_cost[graph.totalCheckpoints]; // to hold the cost of each route
-    int route_length[graph.totalCheckpoints];
-    char route_terrain[graph.totalCheckpoints][MAX_STRING];
+DijkstraResult Dijkstra(int start_index, int end_index, char vehicleType[]) {
 
 
+    int numNodes = graph.totalCheckpoints;
+    
+    DijkstraResult result;
+    PrioQ pq;
+    PQNode startNode;
+    float distance[numNodes];
+    int previousNode[numNodes];
+    int visited[numNodes];
 
-    for (int i = 0; i < graph.totalCheckpoints; i++) {
-        distance[i] = INFINITY;
+    result.totalDist = MAX_FLOAT;
+    result.pathLen   = 0;
+    result.path = malloc(numNodes * sizeof(int));
+    result.routeCost = malloc(numNodes * sizeof(float));
+    result.routeLength = malloc(numNodes * sizeof(int));
+    result.routeTerrain = malloc(numNodes * sizeof(*result.routeTerrain));
+
+    startNode.id = start_index;
+    startNode.dist = 0.0;
+
+    pq.items = NULL;
+    pq.size  = 0;
+
+    for (int i = 0; i < numNodes; i++) {
+        distance[i] = MAX_FLOAT;
+        previousNode[i] = -1;
         visited[i] = 0;
-        paths[i] = -1;
 
-        route_cost[i] = 0.0; 
-        route_length[i] = 0; 
-        route_terrain[i][0] = '\0';  
+        result.routeCost[i] = 0.0;
+        result.routeLength[i] = 0;
+        result.routeTerrain[i][0] = '\0';
     }
 
     distance[start_index] = 0.0;
-    paths[start_index] = start_index;
+    previousNode[start_index] = start_index;
 
-    int current = start_index;
+    PQ_insert(&pq, startNode);
 
-    char boost[MAX_STRING];
+    while (pq.size > 0) {
 
+        PQNode currentNode = PQ_poll(&pq);
+        int current_index = currentNode.id;
 
-    while (current != -1 && current != end_index) {
-
-        Checkpoint current_checkpoint = graph.checkpoints[current];
-        strcpy(boost, current_checkpoint.boost);       // Update the boost of the current checkpoint
-
-
-        for (int i = 0; i < current_checkpoint.numRoutes; i++) {
-            int dest = current_checkpoint.routes[i].destination - 1; //destination id to index
-
-            if (!visited[dest]) {
-                //float cost = current_checkpoint.routes[i].length * terrainMultiplier(vehicle_type, current_checkpoint.routes[i].terrain);
-                //float total_cost = checkpoint_boost(cost, boost, current_checkpoint.routes[i].terrain);
-                int length = current_checkpoint.routes[i].length;
-                char* terrain = current_checkpoint.routes[i].terrain;
-
-                float base_cost = length * terrainMultiplier(vehicle_type, terrain);
-                float total_cost = checkpoint_boost(base_cost, length, boost, terrain);
-
-
-                float new_dist = distance[current] + total_cost;
-
-                if (new_dist < distance[dest]) {
-                    distance[dest] = new_dist;
-                    paths[dest] = current;
-
-                    route_cost[dest] = total_cost;
-                    route_length[dest] = length;
-                    strcpy(route_terrain[dest], terrain);
-                }
-            }
+        if (visited[current_index]) {
+            continue;
         }
 
-        visited[current] = 1;
-        
-
-        // Pick next unvisited node with minimum distance
-        float bestDist = MAX_FLOAT;
-        int best_index = -1;
-                
-        for (int i = 0; i < graph.totalCheckpoints; i++) {
-            if (!visited[i] && distance[i] < bestDist) {
-                bestDist = distance[i];
-                best_index = i;
-            }
+        visited[current_index] = 1;
+        if (current_index == end_index) {
+            break;
         }
 
-        current = best_index;
-            
+        Checkpoint *currentCheckpoint = &graph.checkpoints[current_index];
+        char *checkpointBoost = currentCheckpoint->boost;
+
+        for (int i = 0; i < currentCheckpoint->numRoutes; i++) {
+
+            Route *route = &currentCheckpoint->routes[i];
+            int neighbor_index = route->destination - 1;
+
+            if (visited[neighbor_index]) {
+                continue;
+            }
+
+            int routeLength = route->length;
+            char *terrain   = route->terrain;
+
+            float baseCost = routeLength * terrainMultiplier(vehicleType, terrain);
+
+            float finalCost = checkpoint_boost(baseCost, routeLength, checkpointBoost, terrain);
+
+            float newDistance = distance[current_index] + finalCost;
+
+            if (newDistance < distance[neighbor_index]) {
+
+                distance[neighbor_index] = newDistance;
+                previousNode[neighbor_index] = current_index;
+
+                result.routeCost[neighbor_index] = finalCost;
+                result.routeLength[neighbor_index] = routeLength;
+                strcpy(result.routeTerrain[neighbor_index], terrain);
+
+                PQ_insert(&pq, (PQNode){ neighbor_index, newDistance });                //falta canviar
+            }
+        }
     }
 
-    rebuild_path(paths, start_index, end_index, graph, route_cost, route_length, route_terrain);
+    result.totalDist = distance[end_index];
 
+    if (result.totalDist < MAX_FLOAT) {
+
+        int node_index = end_index;
+
+        while (node_index != start_index) {
+            result.path[result.pathLen] = node_index;
+            result.pathLen++;
+
+            node_index = previousNode[node_index];
+        }
+
+        result.path[result.pathLen] = start_index;
+        result.pathLen++;
+    }
+
+    free(pq.items);
+
+    return result;
 }
 
-void vehicleOptimization(){
 
-    int option = 0;
-    char vehicle_type[20];
+void vehicleOptimization() {
 
-    int visited[graph.totalCheckpoints];
-    memset(visited, 0, sizeof(visited));
+    int option;
+    char vehicleType[20];
 
     printf("\n");
     for (int i = 0; i < graph.num_circuits; i++) {
-        printf("%d) %s (%d)\n", i+1, graph.checkpoints[graph.start_indices[i]].name, graph.checkpoints[graph.start_indices[i]].id);
+        printf("%d) %s (%d)\n",
+               i + 1,
+               graph.checkpoints[graph.start_indices[i]].name,
+               graph.checkpoints[graph.start_indices[i]].id);
     }
+
     printf("\nPick a starting point: ");
     scanf("%d", &option);
 
-    printf("\nEnter a type of vehicle (TERRESTRIAL, AQUATIC, AERIAL or LAVA) or ANY: ");
-    scanf("%s", vehicle_type);
-    //vehicle_type[strlen(vehicle_type)] = '\0';
+    printf("\nEnter a type of vehicle (TERRESTRIAL, AQUATIC, AERIAL, LAVA) or ANY: ");
+    scanf("%s", vehicleType);
 
-    int selected_circuit = option - 1;
 
-    /*if (strcmp(vehicle_type, "ANY") == 0) {
-        Dijkstra_for_any_vehicle(graph, graph.start_indices[selected_circuit], graph.end_indices[selected_circuit], visited);
+    int selectedCircuit = option - 1;
+    int start_index = graph.start_indices[selectedCircuit];
+    int end_index   = graph.end_indices[selectedCircuit];
+
+    /* ---------- ANY vehicle ---------- */
+    if (strcmp(vehicleType, "ANY") == 0) {
+
+        char vehicleTypes[][20] = {"TERRESTRIAL", "AQUATIC", "AERIAL", "LAVA"};
+        int numVehicles = 4;
+
+        DijkstraResult bestResult;
+        bestResult.totalDist = MAX_FLOAT;
+        char bestVehicle[20] = "";
+
+        for (int i = 0; i < numVehicles; i++) {
+            
+            DijkstraResult currentResult = Dijkstra(start_index, end_index, vehicleTypes[i]);
+
+            if (currentResult.totalDist < bestResult.totalDist) {
+
+                if (bestResult.path != NULL) {
+                    free(bestResult.path);
+                    free(bestResult.routeCost);
+                    free(bestResult.routeLength);
+                    free(bestResult.routeTerrain);
+                }
+
+                bestResult = currentResult;
+                strcpy(bestVehicle, vehicleTypes[i]);
+            } 
+            else {
+                free(currentResult.path);
+                free(currentResult.routeCost);
+                free(currentResult.routeLength);
+                free(currentResult.routeTerrain);
+            }
+        }
+
+        printf("\nThe optimal vehicle type is %s.\n\n", bestVehicle);
+
+        print_saved_path(bestResult.path, bestResult.pathLen, bestResult.routeCost, bestResult.routeLength, bestResult.routeTerrain);
+
+        free(bestResult.path);
+        free(bestResult.routeCost);
+        free(bestResult.routeLength);
+        free(bestResult.routeTerrain);
     }
-    else {*/
-        Dijkstra(graph, graph.start_indices[selected_circuit], graph.end_indices[selected_circuit], vehicle_type);
 
-    //}
+    else {
+
+        DijkstraResult result = Dijkstra(start_index, end_index, vehicleType);
+
+        print_saved_path(result.path, result.pathLen, result.routeCost, result.routeLength, result.routeTerrain);
+
+        free(result.path);
+        free(result.routeCost);
+        free(result.routeLength);
+        free(result.routeTerrain);
+    }
+}
 
 
+void freeDijkstraResult(DijkstraResult *r) {
+    free(r->path);
+    free(r->routeCost);
+    free(r->routeLength);
+    free(r->routeTerrain);
 }
 
 int main() {
 
     readfile();
-    printStructs(graph.checkpoints, graph.checkpoints->routes, graph.totalCheckpoints);
-
+    
+    //printStructs(graph.checkpoints, graph.checkpoints->routes, graph.totalCheckpoints);
 
     detectCircuits();
 
     vehicleOptimization();
 
-
-    freeGraph();
+    freeGraph();    //revisar
 
     return 0;
 }
