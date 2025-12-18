@@ -4,7 +4,7 @@
 #include "trees.h"
 
 
-treenode* root = NULL;
+//treenode* root;
 
 
 //AVL TREE FUNCTIONS
