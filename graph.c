@@ -3,149 +3,12 @@
 #include <string.h>
 #include <math.h>
 
-#define MAX_STRING 100
-#define MAX_FLOAT 3.40282347e+38
-
-
-
-//#include "PQgraph.h"      // Priority queue for branch & bound
-// --- Priority queue structure ---
-typedef struct {
-    int id;
-    float dist; 
-} PQNode;
-
-typedef struct {
-    PQNode* items;   // Array of nodes
-    int size;      // Current number of nodes in the queue
-} PrioQ;
-
-static void swap(PQNode *a, PQNode *b) {
-    PQNode tmp = *a;
-    *a = *b;
-    *b = tmp;
-}
-
-void PQ_insert(PrioQ *PQ, PQNode n) {
-    PQ->items = realloc(PQ->items, (PQ->size + 1) * sizeof(PQNode));
-    if (!PQ->items) {
-        printf("Memory allocation error\n");
-        exit(1);
-    }
-
-    int i = PQ->size;
-    PQ->items[i] = n;
-    PQ->size++;
-
-    // Heapify up
-    while (i > 0) {
-        int parent = (i - 1) / 2;
-
-        if (PQ->items[parent].dist <= PQ->items[i].dist)
-            break;
-
-        swap(&PQ->items[parent], &PQ->items[i]);
-        i = parent;
-    }
-}
-
-PQNode PQ_poll(PrioQ *PQ) {
-    if (PQ->size == 0) {
-        printf("Priority queue empty\n");
-        exit(1);
-    }
-
-    PQNode min = PQ->items[0];
-
-    PQ->items[0] = PQ->items[PQ->size - 1];
-    PQ->size--;
-
-    int i = 0;
-
-    // Heapify down
-    while (1) {
-        int left = 2*i + 1;
-        int right = 2*i + 2;
-        int smallest = i;
-
-        if (left < PQ->size &&
-            PQ->items[left].dist < PQ->items[smallest].dist)
-            smallest = left;
-
-        if (right < PQ->size &&
-            PQ->items[right].dist < PQ->items[smallest].dist)
-            smallest = right;
-
-        if (smallest == i)
-            break;
-
-        swap(&PQ->items[i], &PQ->items[smallest]);
-        i = smallest;
-    }
-
-    return min;
-}
-
-PQNode PQ_peek(PrioQ *PQ) {
-    if (PQ->size == 0) {
-        printf("Priority queue empty\n");
-        exit(1);
-    }
-
-    return PQ->items[0];
-}
-
-
-// Basic route information
-typedef struct {
-    int origin;
-    int destination;
-    int length;
-    char terrain[MAX_STRING];
-} Route;
-
-// Checkpoint (graph node)
-typedef struct {
-    int id;
-    char name[MAX_STRING];
-    char boost[MAX_STRING];
-    int start;
-    int end;
-
-    Route* routes;   // adjacency list head
-    int numRoutes;
-    int routesCapacity;
-} Checkpoint;
-
-// Main graph
-typedef struct {
-    int totalCheckpoints;
-    int totalRoutes;
-    Checkpoint* checkpoints;
-    int num_circuits;
-
-    int* start_indices;
-    int* end_indices; 
-} Graph;
-
-typedef struct {
-    float totalDist;
-
-    int *path;
-    int pathLen;
-
-    float *routeCost;
-    int *routeLength;
-    char (*routeTerrain)[MAX_STRING];
-} DijkstraResult;
-
-
-Graph graph; 
-
+#include "graph.h"
+#include "graphPQ.h"
 
 
 // ----------------CREATE GRAPH FROM FILE----------------
-void readfile() {
+void readGraphFile() {
     FILE *f;
 
     f = fopen("graphData.txt", "r");
@@ -235,6 +98,7 @@ void readfile() {
 
 }
 
+/*
 void printStructs(Checkpoint* checkpoints, Route* routes, int totalCheckpoints) {
     printf("\n---- Checkpoints ----\n");
     printf("Number of Checkpoints: %d\n", totalCheckpoints);
@@ -278,25 +142,7 @@ void printStructs(Checkpoint* checkpoints, Route* routes, int totalCheckpoints) 
     printf("\nNum circutis: %d\n\n", graph.num_circuits);
     
 }
-
-void freeGraph() {
-
-    // Free each checkpoint's routes
-    for (int i = 0; i < graph.totalCheckpoints; i++) {
-        free(graph.checkpoints[i].routes);
-    }
-
-    // Free the array of checkpoints
-    free(graph.checkpoints);
-    // Free start/end indices arrays
-    free(graph.start_indices);
-    free(graph.end_indices);
-
-    // Optional: set pointers to NULL to avoid dangling pointers
-    graph.checkpoints = NULL;
-    graph.start_indices = NULL;
-    graph.end_indices = NULL;
-}
+*/
 
 
 void printCircuit(Checkpoint start, Checkpoint end, int count, int circuits_found) {
@@ -422,7 +268,7 @@ float checkpoint_boost(float base_cost, int length, char* boost, char* terrain) 
 
 void print_saved_path(int path[], int pathLen, float cost[], int length[], char terrain[][MAX_STRING]) {
     float total = 0;
-    printf("Here is the shortest path for this circuit:\n\n");
+    printf("\nHere is the shortest path for this circuit:\n\n");
 
     for (int i = pathLen - 1; i >= 0; i--) {
         int idx = path[i];
@@ -613,7 +459,7 @@ void vehicleOptimization() {
             }
         }
 
-        printf("\nThe optimal vehicle type is %s.\n\n", bestVehicle);
+        printf("\nThe optimal vehicle type is %s.\n", bestVehicle);
 
         print_saved_path(bestResult.path, bestResult.pathLen, bestResult.routeCost, bestResult.routeLength, bestResult.routeTerrain);
 
@@ -644,17 +490,34 @@ void freeDijkstraResult(DijkstraResult *r) {
     free(r->routeTerrain);
 }
 
-int main() {
+void freeGraph() {
 
-    readfile();
-    
+    // Free each checkpoint's routes
+    for (int i = 0; i < graph.totalCheckpoints; i++) {
+        free(graph.checkpoints[i].routes);
+    }
+
+    // Free the array of checkpoints
+    free(graph.checkpoints);
+    // Free start/end indices arrays
+    free(graph.start_indices);
+    free(graph.end_indices);
+
+    // Optional: set pointers to NULL to avoid dangling pointers
+    graph.checkpoints = NULL;
+    graph.start_indices = NULL;
+    graph.end_indices = NULL;
+}
+
+/*int main() {
+    readGraphFile();
+
     //printStructs(graph.checkpoints, graph.checkpoints->routes, graph.totalCheckpoints);
 
     detectCircuits();
 
     vehicleOptimization();
 
-    freeGraph();    //revisar
-
+    freeGraph();
     return 0;
-}
+}*/
