@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "trees.h"
+#include "tree.h"
 
 
 //AVL TREE FUNCTIONS
