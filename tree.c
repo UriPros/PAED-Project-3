@@ -4,9 +4,6 @@
 #include "trees.h"
 
 
-//treenode* root;
-
-
 //AVL TREE FUNCTIONS
 int max(int a, int b) {
     if (a > b) {
