@@ -5,8 +5,8 @@
 #include <math.h>
 
 #include "graph.h"
-#include "trees.h"
-//#include "tables.h"
+#include "tree.h"
+//#include "table.h"
 
 
 int StartMenu() {
