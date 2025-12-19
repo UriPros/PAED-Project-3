@@ -91,7 +91,7 @@ void search_by_area(ElementNode* table[]) {
         }
     }
 }
-
+/*
 int main() {
     Element *e;
     FILE* fp;
@@ -121,3 +121,4 @@ int main() {
         }
     }
 }
+*/
