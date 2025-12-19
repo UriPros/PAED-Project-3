@@ -3,9 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "trees.h"
 
-
+#include "graph.h"
+#include "tree.h"
+//#include "table.h"
 
 
 int StartMenu() {
@@ -34,6 +35,7 @@ char StartMenuKart() {
 
     return kartOption;
 }
+
 char StartMenuBrawl() {
     char brawlOption;
 
@@ -48,6 +50,7 @@ char StartMenuBrawl() {
 
     return brawlOption;
 }
+
 char StartMenuWonder() {
     char wonderOption;
 
@@ -77,6 +80,8 @@ int main() {
 
                 char kartOption = 0;
 
+                readGraphFile();
+
                 while (kartOption != 'C') {
 
                     kartOption = StartMenuKart();
@@ -84,12 +89,15 @@ int main() {
                     switch(kartOption) {
 
                         case 'A':
-                            // funció
+                            detectCircuits();
+                            break;
 
                         case 'B':
-                            // funció
+                            vehicleOptimization();
+                            break;
 
                         case 'C':
+                            freeGraph();
                             break;
                     }
                 }
@@ -108,27 +116,22 @@ int main() {
                     switch(brawlOption) {
 
                         case 'A':
-                            // funció
                             addFighter(numFighters);
                             break;
 
                         case 'B':
-                            // funció
                             removeFighter();
                             break;
 
                         case 'C':
-                            // funció
                             visualRepresentation(root);
                             break;
 
                         case 'D':
-                            // funció
                             searchFighter(root);
                             break;
 
                         case 'E':
-                            // funció
                             counterPick();
                             break;
 

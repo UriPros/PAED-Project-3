@@ -1,10 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "trees.h"
-
-
-treenode* root = NULL;
+#include "tree.h"
 
 
 //AVL TREE FUNCTIONS
