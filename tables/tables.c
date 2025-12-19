@@ -5,8 +5,6 @@
 #include "tables.h"
 #include "linkedlist.h"
 
-//he fet aquesta pero si el carles ens penja una altra de model, la cambiem
-
 int hash(char* name) {
     unsigned long hash = 5381;
     int c;
