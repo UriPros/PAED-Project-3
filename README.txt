@@ -6,40 +6,63 @@ Group: APDS-P3-G10
 
 Description
 
-This project implements two combinatorial optimization algorithms: Backtracking (a recursive method that explores all possible paths while pruning unpromising ones)
-and Branch and Bound (an approach that evaluates partial solutions with a cost estimate to discard paths that cannot improve the current best solution).
+This project implements and applies three non-linear data structures to solve different problems inspired by the Super Structure Bros videogame universe:
+
+    - Graphs (Kart): Used to represent racing circuits and checkpoints, enabling circuit detection and vehicle route optimization.
+
+    - Trees (Brawl): Used to store and manage fighters ordered by attack power, allowing efficient insertion, deletion, visualization, and range-based queries.
+
+    - Tables (Wonder): Used to store game elements by name, enabling fast lookup, spatial queries by area, and statistical analysis by world.
 
 
 ---
 
-Importnat Information!
+Importnat Information:
 
-The Backtracking and Branch and Bound algorithms are in two different .c files:
+The Graphs, Trees and Tables algorithms are in three different .c files, as well as third-party implementations:
 
-    - If the user wants to run it using a Backtracking approach:
-        - File: Project2_Backtracking.c
-        - Maze file: ourMaze.txt (includes the maze we created to test if the algorithm works)
+    - Grpahs:
+        - File: graph.c and graph.h
+        - Maze file: graphData.txt (wich is equivalent to graphsXS.paed file provided with the statement)
+        - Other files corresponding to graphs: 
+            graphPQ.c (includes the implementation of the priority queue and its necessary functions to run the code)
+            graphPQ.h
+        
+        ! To run the graphs, and specifically the main algorithm, all these files must be included when compiling it !
 
-
-    - If the user wants to run it using a Branch and Bound approach:
-        - File: Project2_BranchBound.c
-        - Maze file: ourMaze.txt (includes the maze we created to test if the algorithm works)
-        - Other files: 
-            myCONFIG.c  (includes all side functions that are used in our program)
-            myCONFIG.h
-            myPQ.c (includes the implementation of the priority queue and its necessary functions to run the code)
-            myPQ.h
-
-        ! To run the Branch and Bound algorithm all these files must be included when compiling it !
+    - Trees:
+        - File: tree.c and tree.h
+        - Maze file: treeData.txt (which is equivalent to treesXXS.paed file provided with the statement)
+        
+    - Tables:
+        - File: table.c and table.h
+        - Maze file: tableData.txt (wich is equivalent to tablesM.paed file provided with the statement)
+        - Other files corresponding to graphs: 
+            tableLL.c (includes the implementation of the linked list and its necessary functions to run the code)
+            talbeLL.h
+        
+        ! To run the table, and specifically the main algorithm, all these files must be included when compiling it !
 
 
 ! Important !
 
-    Line 
-        FILE *f = fopen("ourMaze.txt", "r");
+    - Graphs:
+        Line 17
+            f = fopen("graphData.txt", "r");
+        
+        should be changed according to the file the user wants to use.
 
-    found in Project2_Backtracking for the backtracking (line 53) algorithm, and in the myCONFIG.c for the 
-    branch and bound algorithm (line 9), should be changed according to the file the user wants to use.
+    - Trees:
+        Line 145
+            f = fopen("treeData.txt", "r");
+        
+        should be changed according to the file the user wants to use.
+
+    - Tables:
+        Line 128
+            fp = fopen("tableData.txt", "r");
+        
+        should be changed according to the file the user wants to use.
 
 ---
 
@@ -47,68 +70,17 @@ Compilation Instructions
 
 Using GCC:
 
-    - Backtracking algorithm:
+    - Main algorithm:
             
-        gcc Project2_Backtracking.c -o Project2_Backtracking.exe    
+        gcc main.c tree.c graph.c graphPQ.c table.c tableLL.c -o main   
 
-        ./Project2_Backtracking.exe 
-
-    - Branch and Bound algorithm:
-
-        gcc Project2_BranchBound.c myCONFIG.c myPQ.c -o Project2_BranchBound.exe  
-
-        ./Project2_BranchBound.exe                                              
-
+        ./main.exe
 
 ---
 
 Code Run Example:
 
-    - Backtracking algorithm:
-
-        FILE *f = fopen("ourMaze.txt", "r")                             (write the file name of the maze the user wants to use)
-
-        gcc Project2_Backtracking.c -o Project2_Backtracking.exe        (compile the program)
-
-        ./Project2_Backtracking.exe                                     (run it)
-
-
-        FINAL PATH with Backtracking                                    (wait for output)
-
-        ###########
-        ## #^>>>>>#
-        ##v#^    v#
-        #<v#^   #8#
-        #v>>>     #
-        ###########
-
-        Moves: vv<v>>>^^^>>>>>vv
-
-        Total steps: 17
-
-
-    - Branch and Bound algorithm:
-
-        FILE *f = fopen("ourMaze.txt", "r")                                             (write the file name of the maze the user wants to use)
-
-        gcc Project2_BranchBound.c myCONFIG.c myPQ.c -o Project2_BranchBound.exe        (compile the program using necessary files)
-
-        ./Project2_BranchBound.exe                                                      (run it)
-
-
-        FINAL PATH with Branch and Bound                                                (wait for output)
-
-        ###########
-        ## #^>>>>>#
-        ##v#^    v#
-        #<v#^   #8#
-        #v>>>     #
-        ###########
-
-        Moves: vv<v>>>^^^>>>>>vv
-
-        Total steps: 17
-
+Can be seen in the project's statement, since we followed the exact same output strucutre.
 
 
 -----------------------------------------
@@ -127,8 +99,11 @@ Prerequisites
 
 .zip Folder Structure
 
-- `Project2_Backtracking.c`, `Project2_BranchBound.c` – Programs implementing Backtracking and Branch and Bound algorithms.
-- `myCONFIG.c`, `myCONFIG.h`, `myPQ.c`, `myPQ.h` - Necessary files to run the Branch and Bound algorithm.  
-- `ourMaze.txt` - Example of maze to solve we created
+- `graph.c`, `graph.h`, `graphPQ.c`, graphPQ.h` – Programs implementing Graphs.
+- `tree.c`, `tree.h` - Programs implementing Trees.
+- `table.c`, `table.h`, `talbeLL.c`, `tableLL.h` – Programs implementing Tables.
+- `graphData.txt`, `treeData.txt`, `tableData.txt`- Text files containing data for each functionality.
+- `main.c`- Main program which englobes and puts together Graphs, Trees and Tables.
+
 
 ---
