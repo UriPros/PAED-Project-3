@@ -30,7 +30,7 @@ int getBalanceFactor(treenode* node);
 treenode *rightRotate(treenode *node);
 treenode *leftRotate(treenode *node);
 treenode *createnode(Fighter fighter);
-void insertNode(treenode* *root, Fighter fighter);
+void insertNode(treenode* *root, Fighter fighter, int *inserted);
 int readTreeFile();
 void addFighter(int numFighters);
 treenode *findMin (treenode *node);
