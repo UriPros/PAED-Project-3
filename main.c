@@ -1,3 +1,6 @@
+// APDS – Project 3: Non-Linear Data Structures – Main Program
+// Code by Sara Gibert, Oriol Pros, Jan Porcar and Francesc Mateu
+// Group: APDS-P3-G10
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +13,7 @@
 
 
 int StartMenu() {
+    // Display main menu and get user choice
     int option = 0;
 
     printf("\n._/\\ Super Structure Bros /\\_.\n");
@@ -24,6 +28,7 @@ int StartMenu() {
 }
 
 char StartMenuKart() {
+    // Display kart (graph) submenu
     char kartOption;
 
     printf("\n-------------------\n");
@@ -39,6 +44,7 @@ char StartMenuKart() {
 }
 
 char StartMenuBrawl() {
+    // Display brawl (tree) submenu
     char brawlOption;
 
     printf("\n-------------------\n");
@@ -56,6 +62,7 @@ char StartMenuBrawl() {
 }
 
 char StartMenuWonder() {
+    // Display wonder (table) submenu
     char wonderOption;
 
     printf("\n-------------------\n");
@@ -73,7 +80,7 @@ char StartMenuWonder() {
 }
 
 int main() {
-
+    // Main program loop
     int option = 0;
 
     while (option != 4) {
@@ -83,12 +90,8 @@ int main() {
         switch(option) {
 
             case 1: {
-
+                // Kart (Graphs) mode
                 char kartOption = 0;
-
-                printf("\n-----------------------------------------\n\n");
-                printf("YOU HAVE ENTERED TO SUPER STRUCTURE KART!\n\n");
-                printf("-----------------------------------------\n");
 
                 readGraphFile();
 
@@ -114,12 +117,8 @@ int main() {
             } break;
 
             case 2: {
-                
+                // Brawl (Trees) mode
                 char brawlOption = 0;
-
-                printf("\n------------------------------------------\n\n");
-                printf("YOU HAVE ENTERED TO SUPER STRUCTURE BRAWL!\n\n");
-                printf("------------------------------------------\n");
 
                 int numFighters = readTreeFile();
 
@@ -157,11 +156,8 @@ int main() {
             } break;
         
             case 3: {
+                // Wonder (Tables) mode
                 char wonderOption = 0;
-
-                printf("\n-------------------------------------------\n\n");
-                printf("YOU HAVE ENTERED TO SUPER STRUCTURE WONDER!\n\n");
-                printf("-------------------------------------------\n");
 
                 readTableFile();
 
@@ -172,27 +168,22 @@ int main() {
                     switch(wonderOption) {
 
                         case 'A':
-                            // funció
                             add_element();
                             break; 
 
                         case 'B':
-                            // funció
                             remove_element();
                             break;
 
                         case 'C':
-                            // funció
                             lookup_element();
                             break;
 
                         case 'D':
-                            // funció
                             search_by_area();
                             break;
 
                         case 'E':
-                            // funció
                             // statistics
                         case 'F':
                             break;
@@ -201,6 +192,7 @@ int main() {
             } break;
                 
             case 4: {
+                // Exit
                 printf("\nThank you for playing!\n");
                 printf("\nTurning Super Structure Bros off.\n");
                 printf("\n._/\\  ·  \\___/\\___/  ·  /\\_.\n\n");
