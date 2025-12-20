@@ -1,3 +1,7 @@
+// APDS – Project 3: Non-Linear Data Structures – Trees
+// Code by Sara Gibert, Oriol Pros, Jan Porcar and Francesc Mateu
+// Group: APDS-P3-G10
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,7 +17,7 @@ int max(int a, int b) {
 }
 
 int getHeight(treenode* node) {
-
+    // Returns the height of the node (max depth from this node)
     int leftHeight, rightHeight;
 
     if (node == NULL) {
@@ -32,6 +36,7 @@ int getHeight(treenode* node) {
 }
 
 int getBalanceFactor(treenode* node) {
+    // Balance factor = height(left) - height(right)
     if (node == NULL) {
         return 0;
     }
@@ -39,6 +44,7 @@ int getBalanceFactor(treenode* node) {
 }
 
 treenode *rightRotate(treenode *node) {
+    // Perform right rotation to balance the tree
     treenode *prev = node->left;
     treenode *middle = prev->right;
 
@@ -55,6 +61,7 @@ treenode *rightRotate(treenode *node) {
 }
 
 treenode *leftRotate(treenode *node) {
+    // Perform left rotation to balance the tree
     treenode *prev = node->right;
     treenode *middle = prev->left;
 
@@ -74,6 +81,7 @@ treenode *leftRotate(treenode *node) {
 
 // Creating Tree Functions
 treenode *createnode(Fighter fighter){
+    // Create a new tree node with the given fighter
     treenode* newnode = (treenode*)malloc(sizeof(treenode));
     if (newnode != NULL) {
         newnode->fighter = fighter;
@@ -85,7 +93,7 @@ treenode *createnode(Fighter fighter){
 }
 
 void insertNode(treenode* *root, Fighter fighter, int *inserted){
-
+    // Insert a fighter into the AVL tree, maintaining balance
     treenode *node = *root;
 
     if (node == NULL) {
@@ -133,6 +141,7 @@ void insertNode(treenode* *root, Fighter fighter, int *inserted){
 }
 
 int readTreeFile(){
+    // Read fighters from file and insert into AVL tree
     FILE *f;
     Fighter fighter;
     int numFighters;
@@ -147,6 +156,7 @@ int readTreeFile(){
 
     fscanf(f, "%d\n", &numFighters);
 
+    // Read each fighter and insert into tree
     for (int i = 0; i < numFighters; i++) {
 
         fscanf(f, "%d;%[^;];%d;%[^;];%[^;];%d\n",
@@ -192,6 +202,7 @@ void addFighter(int numFighters){
     printf("Fighter price: ");
     scanf("%d", &newFighter.price);
 
+    // Check for duplicate ID
     if (findFighterById(root, newFighter.id) != NULL) {
         printf("\nA fighter with ID %d already exists. Duplicate ID's are not allowed.\n", newFighter.id);
         return;
@@ -210,7 +221,7 @@ void addFighter(int numFighters){
 
 // Revmove fighter functions
 treenode *findMin (treenode *node) {
-
+    // Find the minimum node (leftmost) in the subtree
     while (node && node->left != NULL) {
         node = node->left;
     }
@@ -218,7 +229,7 @@ treenode *findMin (treenode *node) {
 }
 
 void deleteNode(treenode* *root, int power_lvl) {
-
+    // Delete a node from AVL tree by power level, maintaining balance
     treenode *node = *root;
     treenode *inOrderSuccessor;
 
@@ -233,7 +244,7 @@ void deleteNode(treenode* *root, int power_lvl) {
         deleteNode(&node->right, power_lvl);
     }
     else {
-        // Node found, perform deletion (not implemented)
+        // Node found, perform deletion
         // node with only one child or no child
         if (node->left == NULL) {
             *root = node->right;
@@ -246,6 +257,7 @@ void deleteNode(treenode* *root, int power_lvl) {
             return;
         }
         else {
+            // Node with two children: get inorder successor
             inOrderSuccessor = findMin(node->right);
             node->fighter = inOrderSuccessor->fighter;
             deleteNode(&node->right, inOrderSuccessor->fighter.power_lvl);
@@ -288,7 +300,7 @@ void deleteNode(treenode* *root, int power_lvl) {
 }
 
 treenode* findFighterById(treenode* node, int id) {
-
+    // Search for a fighter by ID using inorder traversal
     treenode* foundNode;
 
     if (node == NULL) {
@@ -314,6 +326,7 @@ void removeFighter(){
     printf("\nFighter identifier to remove: ");
     scanf("%d", &id_to_remove);
 
+    // Find the node by ID
     node_to_remove = findFighterById(root, id_to_remove);
 
     if (node_to_remove == NULL) {
@@ -328,12 +341,14 @@ void removeFighter(){
 
 // Visual representation functions
 void printTabs(int level) {
+    // Print tabs for indentation in tree visualization
     for (int i = 0; i < level; i++) {
         printf("\t");
     }
 }
 
 void printColoredText(Fighter fighter) {
+    // Print fighter name in their color using ANSI escape codes
     int r, g, b;
 
     if (fighter.colour[0] == '#') {
@@ -370,18 +385,19 @@ void printNode(treenode* node, char isLeft) {
 
 //tree traversal (right -> node -> left)
 void printTree(treenode* node, int level, char isLeft) {
+    // Print the tree in a visual format using right-node-left traversal
     if (node == NULL) {
         return;
     }
 
-    // Print right  first (on top)
+    // Print right subtree first (on top)
     printTree(node->right, level + 1, 1);
 
     // Print current node
     printTabs(level);
     printNode(node, isLeft);
 
-    // Print left  (below)
+    // Print left subtree (below)
     printTree(node->left, level + 1, 0);
 }
 
@@ -393,7 +409,7 @@ void visualRepresentation(treenode* root) {
 
 // Search fighter functions
 int findNode(treenode* root, int power_lvl, Fighter *foundFighter) {
-
+    // Search for a fighter by power level
     if (root == NULL) {
         return 0; // Not found
     }
@@ -410,7 +426,7 @@ int findNode(treenode* root, int power_lvl, Fighter *foundFighter) {
 }
 
 void searchFighter(treenode* root){
-
+    // Search and display fighter by power level
     int power_lvl;
     Fighter foundFighter;
     int found = 0;
@@ -438,7 +454,7 @@ void searchFighter(treenode* root){
 // Counterpick functions
 //Inorder traversal to find and print counters (first left, then root, then right)
 int findCounters(treenode* node, int min_atk, int max_atk) {
-
+    // Find fighters within power level range using inorder traversal
     int count = 0;
 
     if (node == NULL) {
@@ -460,7 +476,7 @@ int findCounters(treenode* node, int min_atk, int max_atk) {
 }
 
 void counterPick() {
-       
+    // Find and display counter fighters within a power level range
     int min_atk, max_atk;
     int num_counters = 0;
 
