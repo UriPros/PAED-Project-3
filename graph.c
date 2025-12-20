@@ -1,3 +1,7 @@
+// APDS – Project 3: Non-Linear Data Structures – Graphs
+// Code by Sara Gibert, Oriol Pros, Jan Porcar and Francesc Mateu
+// Group: APDS-P3-G10
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,7 +9,6 @@
 
 #include "graph.h"
 #include "graphPQ.h"
-
 
 // ----------------CREATE GRAPH FROM FILE----------------
 void readGraphFile() {
@@ -18,13 +21,14 @@ void readGraphFile() {
         return;
     }
 
-    //1a part
+    // Read the total number of checkpoints
     fscanf(f, "%d\n", &graph.totalCheckpoints);
 
     graph.num_circuits = 0;
 
     graph.checkpoints = (Checkpoint*)malloc(graph.totalCheckpoints * sizeof(Checkpoint));
 
+    // Read checkpoint data: id;name;boost;start;end
     for (int i = 0; i < graph.totalCheckpoints; i++) {
         int id;
         char name[MAX_STRING], boost[MAX_STRING];
@@ -42,6 +46,7 @@ void readGraphFile() {
         graph.checkpoints[id - 1].numRoutes = 0;
         graph.checkpoints[id - 1].routesCapacity = 0;
 
+        // Count circuits based on start checkpoints
         if (graph.checkpoints[id - 1].start == 1) {
             graph.num_circuits++;
         }
@@ -51,9 +56,10 @@ void readGraphFile() {
     graph.end_indices   = malloc(graph.num_circuits * sizeof(int)); 
 
 
-    //2a part
+    // Read the total number of routes
     fscanf(f, "%d\n", &graph.totalRoutes);
 
+    // Read route data: originID;destID;length;terrain
     for (int i = 0; i < graph.totalRoutes; i++) {
         int originID, destID, length;
         char terrain[MAX_STRING];
@@ -61,9 +67,10 @@ void readGraphFile() {
 
         fscanf(f, "%d;%d;%d;%s\n", &originID, &destID, &length, terrain);
 
-        //Assignar l'origen de la ruta al checkpoint corresponent
+        // Assign the route to the origin checkpoint
         route_origin = &graph.checkpoints[originID - 1];
 
+        // Initialize routes array if not already done
         if (route_origin->routesCapacity == 0) {
             route_origin->routesCapacity = 2;
             route_origin->routes = malloc(route_origin->routesCapacity * sizeof(Route));
@@ -75,7 +82,7 @@ void readGraphFile() {
             }
         }
 
-        // Si capacity is full -> double it
+        // Double capacity if full
         if (route_origin->numRoutes >= route_origin->routesCapacity) {
             route_origin->routesCapacity *= 2;
             route_origin->routes = realloc(route_origin->routes, route_origin->routesCapacity * sizeof(Route));
@@ -107,13 +114,14 @@ void printCircuit(Checkpoint start, Checkpoint end, int count, int circuits_foun
 }
 
 
-// ----------------CIRCUIT DETECTION FUNCTION----------------
+// ----------------CIRCUIT DETECTION FUNCTIONS----------------
 void DFS(Checkpoint *current, int *index_end, int visited[], int *count) {
 
     // Mark the current node as visited and increment count of checkpoints in circuit
     visited[current->id - 1] = 1;
     (*count)++;
 
+    // If current is an end checkpoint, set it as the end of the circuit
     if (current->end == 1) {
         *index_end = current->id - 1;
         return;
@@ -136,21 +144,22 @@ void detectCircuits() {
 
     printf("\n\nThe following %d circuits have been found:\n\n", graph.num_circuits);
 
+    // Iterate through all checkpoints to find starting points
     for (int i = 0; i < graph.totalCheckpoints; i++) {
-        
-        //heuristic per veure si tots els starts ja s'han trobat
-        // protegir que el dataset estigui correcte
+
+        // Heuristic to see if all starts have already been found and protect dataset from being correctly read
         if (circuits_found >= graph.num_circuits) {
             return;
         }
 
+        // If this checkpoint is a start, perform DFS to find the circuit
         if (graph.checkpoints[i].start == 1) {
 
             //Create variables needed for the circuit
             int checkpoints_in_circuit = 0;
             Checkpoint start;
             Checkpoint end;
-            int index_end = graph.checkpoints[i].id;        //inicialitzar el end al start in case that there is only 1 node
+            int index_end = graph.checkpoints[i].id;        //initialize end to start in case that there is only 1 node
 
             int visited[graph.totalCheckpoints];
             memset(visited, 0, graph.totalCheckpoints * sizeof(int));
@@ -173,20 +182,24 @@ void detectCircuits() {
 }
 
 
-// ---------------- VEHICLE OPTIMIZATION FUNCTION----------------
+// ---------------- VEHICLE OPTIMIZATION FUNCTIONS----------------
 float terrainMultiplier(char* vehicle_type, char* terrain) {
+    // If terrain matches vehicle type, no penalty
     if (strcmp(terrain, vehicle_type) == 0) {
         return 1.0;
     }
 
+    // TERRESTRIAL is default, no penalty
     if (strcmp(terrain, "TERRESTRIAL") == 0) {
         return 1.0;
     }
 
+    // LAVA penalizes non-LAVA vehicles
     if (strcmp(terrain, "LAVA") == 0 && strcmp("LAVA", vehicle_type) != 0) {
         return 2.0;
     }
 
+    // CUT is highly penalized
     if (strcmp(terrain, "CUT") == 0) {
         return 4.0;
     }
@@ -195,16 +208,19 @@ float terrainMultiplier(char* vehicle_type, char* terrain) {
 }
 
 float checkpoint_boost(float base_cost, int length, char* boost, char* terrain) {
-
+    // No boost
     if (strcmp(boost, "NONE") == 0)
         return base_cost;
 
+    // SPEED reduces cost by 25%
     if (strcmp(boost, "SPEED") == 0)
         return base_cost * 0.75;
 
+    // JUMP ignores all penalties
     if (strcmp(boost, "JUMP") == 0)
         return length * 1.0;   // ignore all penalties
 
+    // ITEM ignores penalties except CUT
     if (strcmp(boost, "ITEM") == 0) {
         if (strcmp(terrain, "CUT") == 0) {
             return base_cost;    // CUT cannot be ignored
@@ -240,7 +256,6 @@ void print_saved_path(int path[], int pathLen, float cost[], int length[], char 
 
 DijkstraResult Dijkstra(int start_index, int end_index, char vehicleType[]) {
 
-
     int numNodes = graph.totalCheckpoints;
     
     DijkstraResult result;
@@ -250,6 +265,7 @@ DijkstraResult Dijkstra(int start_index, int end_index, char vehicleType[]) {
     int previousNode[numNodes];
     int visited[numNodes];
 
+    // Initialize result structure
     result.totalDist = MAX_FLOAT;
     result.pathLen   = 0;
     result.path = malloc(numNodes * sizeof(int));
@@ -263,6 +279,7 @@ DijkstraResult Dijkstra(int start_index, int end_index, char vehicleType[]) {
     pq.items = NULL;
     pq.size  = 0;
 
+    // Initialize distances and arrays
     for (int i = 0; i < numNodes; i++) {
         distance[i] = MAX_FLOAT;
         previousNode[i] = -1;
@@ -278,6 +295,7 @@ DijkstraResult Dijkstra(int start_index, int end_index, char vehicleType[]) {
 
     PQ_insert(&pq, startNode);
 
+    // Main Dijkstra loop
     while (pq.size > 0) {
 
         PQNode currentNode = PQ_poll(&pq);
@@ -295,6 +313,7 @@ DijkstraResult Dijkstra(int start_index, int end_index, char vehicleType[]) {
         Checkpoint *currentCheckpoint = &graph.checkpoints[current_index];
         char *checkpointBoost = currentCheckpoint->boost;
 
+        // Explore neighbors
         for (int i = 0; i < currentCheckpoint->numRoutes; i++) {
 
             Route *route = &currentCheckpoint->routes[i];
@@ -307,12 +326,15 @@ DijkstraResult Dijkstra(int start_index, int end_index, char vehicleType[]) {
             int routeLength = route->length;
             char *terrain   = route->terrain;
 
+            // Calculate base cost with terrain multiplier
             float baseCost = routeLength * terrainMultiplier(vehicleType, terrain);
 
+            // Apply checkpoint boost
             float finalCost = checkpoint_boost(baseCost, routeLength, checkpointBoost, terrain);
 
             float newDistance = distance[current_index] + finalCost;
 
+            // If better path found, update
             if (newDistance < distance[neighbor_index]) {
 
                 distance[neighbor_index] = newDistance;
@@ -332,6 +354,7 @@ DijkstraResult Dijkstra(int start_index, int end_index, char vehicleType[]) {
 
     result.totalDist = distance[end_index];
 
+    // Reconstruct path if reachable
     if (result.totalDist < MAX_FLOAT) {
 
         int node_index = end_index;
@@ -417,6 +440,7 @@ void vehicleOptimization() {
         free(bestResult.routeTerrain);
     }
 
+    /* ---------- Specific vehicle ---------- */
     else {
 
         DijkstraResult result = Dijkstra(start_index, end_index, vehicleType);
