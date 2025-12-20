@@ -46,10 +46,10 @@ void readGraphFile() {
             graph.num_circuits++;
         }
     }
-    
+
     graph.start_indices = malloc(graph.num_circuits * sizeof(int));
-    graph.end_indices   = malloc(graph.num_circuits * sizeof(int));       
-    
+    graph.end_indices   = malloc(graph.num_circuits * sizeof(int)); 
+
 
     //2a part
     fscanf(f, "%d\n", &graph.totalRoutes);
@@ -98,57 +98,11 @@ void readGraphFile() {
 
 }
 
-/*
-void printStructs(Checkpoint* checkpoints, Route* routes, int totalCheckpoints) {
-    printf("\n---- Checkpoints ----\n");
-    printf("Number of Checkpoints: %d\n", totalCheckpoints);
-    for (int i = 0; i < totalCheckpoints; i++) {
-        printf("Checkpoint ID: %d\n", checkpoints[i].id);
-        printf("Name: %s\n", checkpoints[i].name);
-        printf("Boost: %s\n", checkpoints[i].boost);
-        printf("Start: %d\n", checkpoints[i].start);
-        printf("End: %d\n", checkpoints[i].end);
-        printf("\n");
-    }
-    printf("\n\n");
-
-    printf("---- Routes ----\n");
-    for (int i = 0; i < totalCheckpoints; i++) {
-        Checkpoint cp = checkpoints[i];
-        printf("Routes from Checkpoint ID %d:\n", cp.id);
-        for (int j = 0; j < cp.numRoutes; j++) {
-            Route route = cp.routes[j];
-            printf("  To Checkpoint ID: %d\n", route.destination);
-            printf("  Length: %d\n", route.length);
-            printf("  Terrain: %s\n", route.terrain);
-            printf("\n");
-        }
-        printf("\n");
-    }
-
-    printf("\n\n");
-
-    printf("Print graph:\n");
-    for (int i = 0; i < totalCheckpoints; i++) {
-        Checkpoint cp = checkpoints[i];
-        printf("Checkpoint ID %d (%s), (BOOST: %s):\n", cp.id, cp.name, cp.boost);
-        for (int j = 0; j < cp.numRoutes; j++) {
-            Route route = cp.routes[j];
-            printf("  -> Checkpoint ID %d | Length: %d | Terrain: %s\n",
-                   route.destination, route.length, route.terrain);
-        }
-        printf("\n");
-    }
-    printf("\nNum circutis: %d\n\n", graph.num_circuits);
-    
-}
-*/
-
 
 void printCircuit(Checkpoint start, Checkpoint end, int count, int circuits_found) {
-    printf("Circuit %d)\n\n", circuits_found);
+    printf("\n  Circuit %d)\n\n", circuits_found);
     printf("Start: %s (%d)\n", start.name, start.id);
-    printf("End: %s (%d)\n", end.name, end.id);
+    printf("End:   %s (%d)\n", end.name, end.id);
     printf("Total: %d checkpoints\n\n", count);
 }
 
@@ -161,7 +115,7 @@ void DFS(Checkpoint *current, int *index_end, int visited[], int *count) {
     (*count)++;
 
     if (current->end == 1) {
-        *index_end = current->id -1;
+        *index_end = current->id - 1;
         return;
     }
 
@@ -180,7 +134,7 @@ void detectCircuits() {
 
     int circuits_found = 0;
 
-    printf("The following %d circuits have been found:\n\n", graph.num_circuits);
+    printf("\n\nThe following %d circuits have been found:\n\n", graph.num_circuits);
 
     for (int i = 0; i < graph.totalCheckpoints; i++) {
         
@@ -215,6 +169,7 @@ void detectCircuits() {
             printCircuit(start, end, checkpoints_in_circuit, circuits_found);
         }
     }
+    printf("\n");
 }
 
 
@@ -239,8 +194,6 @@ float terrainMultiplier(char* vehicle_type, char* terrain) {
     return 1.5;  // default penalization
 }
 
-
-
 float checkpoint_boost(float base_cost, int length, char* boost, char* terrain) {
 
     if (strcmp(boost, "NONE") == 0)
@@ -264,8 +217,6 @@ float checkpoint_boost(float base_cost, int length, char* boost, char* terrain) 
     return base_cost;
 }
 
-
-
 void print_saved_path(int path[], int pathLen, float cost[], int length[], char terrain[][MAX_STRING]) {
     float total = 0;
     printf("\nHere is the shortest path for this circuit:\n\n");
@@ -286,8 +237,6 @@ void print_saved_path(int path[], int pathLen, float cost[], int length[], char 
 
     printf("\nTotal Effective Distance: %.2f SRU\n", total);
 }
-
-
 
 DijkstraResult Dijkstra(int start_index, int end_index, char vehicleType[]) {
 
@@ -373,7 +322,10 @@ DijkstraResult Dijkstra(int start_index, int end_index, char vehicleType[]) {
                 result.routeLength[neighbor_index] = routeLength;
                 strcpy(result.routeTerrain[neighbor_index], terrain);
 
-                PQ_insert(&pq, (PQNode){ neighbor_index, newDistance });                //falta canviar
+                PQNode newNode;
+                newNode.id = neighbor_index;
+                newNode.dist = newDistance;
+                PQ_insert(&pq, newNode);
             }
         }
     }
@@ -400,7 +352,6 @@ DijkstraResult Dijkstra(int start_index, int end_index, char vehicleType[]) {
     return result;
 }
 
-
 void vehicleOptimization() {
 
     int option;
@@ -408,10 +359,7 @@ void vehicleOptimization() {
 
     printf("\n");
     for (int i = 0; i < graph.num_circuits; i++) {
-        printf("%d) %s (%d)\n",
-               i + 1,
-               graph.checkpoints[graph.start_indices[i]].name,
-               graph.checkpoints[graph.start_indices[i]].id);
+        printf("%d) %s (%d)\n", i + 1, graph.checkpoints[graph.start_indices[i]].name, graph.checkpoints[graph.start_indices[i]].id);
     }
 
     printf("\nPick a starting point: ");
@@ -481,7 +429,6 @@ void vehicleOptimization() {
         free(result.routeTerrain);
     }
 }
-
 
 void freeDijkstraResult(DijkstraResult *r) {
     free(r->path);
