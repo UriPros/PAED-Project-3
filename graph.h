@@ -50,8 +50,6 @@ typedef struct {
 
 Graph graph; 
 
-
-
 void readGraphFile();
 void printCircuit(Checkpoint start, Checkpoint end, int count, int circuits_found);
 void DFS(Checkpoint *current, int *index_end, int visited[], int *count);
@@ -63,7 +61,5 @@ DijkstraResult Dijkstra(int start_index, int end_index, char vehicleType[]);
 void vehicleOptimization();
 void freeDijkstraResult(DijkstraResult *r);
 void freeGraph();
-
-
 
 #endif
