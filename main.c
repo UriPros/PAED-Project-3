@@ -6,7 +6,7 @@
 
 #include "graph.h"
 #include "tree.h"
-//#include "table.h"
+#include "table.h"
 
 
 int StartMenu() {
@@ -26,6 +26,8 @@ int StartMenu() {
 char StartMenuKart() {
     char kartOption;
 
+    printf("\n-------------------\n");
+    printf("MENU:\n");
     printf("\n\tA. Circuit detection\n");
     printf("\tB. Vehicle optimization\n");
     printf("\n\tC. Go back\n");
@@ -39,6 +41,8 @@ char StartMenuKart() {
 char StartMenuBrawl() {
     char brawlOption;
 
+    printf("\n-------------------\n");
+    printf("MENU:\n");
     printf("\n\tA. Add fighter\n");
     printf("\tB. Remove fighter\n");
     printf("\tC. Visual representation\n");
@@ -54,6 +58,8 @@ char StartMenuBrawl() {
 char StartMenuWonder() {
     char wonderOption;
 
+    printf("\n-------------------\n");
+    printf("MENU:\n");
     printf("\n\tA. Add element\n");
     printf("\tB. Delete element\n");
     printf("\tC. Lookup\n");
@@ -79,6 +85,10 @@ int main() {
             case 1: {
 
                 char kartOption = 0;
+
+                printf("\n-----------------------------------------\n\n");
+                printf("YOU HAVE ENTERED TO SUPER STRUCTURE KART!\n\n");
+                printf("-----------------------------------------\n");
 
                 readGraphFile();
 
@@ -106,6 +116,10 @@ int main() {
             case 2: {
                 
                 char brawlOption = 0;
+
+                printf("\n------------------------------------------\n\n");
+                printf("YOU HAVE ENTERED TO SUPER STRUCTURE BRAWL!\n\n");
+                printf("------------------------------------------\n");
 
                 int numFighters = readTreeFile();
 
@@ -143,7 +157,13 @@ int main() {
             } break;
         
             case 3: {
-                char wonderOption = 0; StartMenuWonder();
+                char wonderOption = 0;
+
+                printf("\n-------------------------------------------\n\n");
+                printf("YOU HAVE ENTERED TO SUPER STRUCTURE WONDER!\n\n");
+                printf("-------------------------------------------\n");
+
+                readTableFile();
 
                 while (wonderOption != 'F') {
 
@@ -153,19 +173,27 @@ int main() {
 
                         case 'A':
                             // funció
+                            add_element();
+                            break; 
 
                         case 'B':
                             // funció
+                            remove_element();
+                            break;
 
                         case 'C':
                             // funció
+                            lookup_element();
+                            break;
 
                         case 'D':
                             // funció
+                            search_by_area();
+                            break;
 
                         case 'E':
                             // funció
-
+                            // statistics
                         case 'F':
                             break;
                     }
@@ -173,8 +201,9 @@ int main() {
             } break;
                 
             case 4: {
+                printf("\nThank you for playing!\n");
                 printf("\nTurning Super Structure Bros off.\n");
-                printf("\n._/\\  ·  \\___/\\___/  ·  /\\_.\n");
+                printf("\n._/\\  ·  \\___/\\___/  ·  /\\_.\n\n");
                 break;
             } break;
         }
